@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 using Headjack;
 using TMPro;
 
-public class ScrollSnapTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler  
+public class ScrollSnapTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
 	// This class allows us to extend functionality of selectables
 	// without completely overriding existing functionality. 
@@ -51,6 +51,23 @@ public class ScrollSnapTooltip : MonoBehaviour, IPointerClickHandler, IPointerEn
 	public RectTransform scrollbarRect;
 	public ScrollSnapBase scrollSnap;
 
+	//Debug
+
+	public TextMeshProUGUI debugTextContainerSize;
+	public TextMeshProUGUI debugTextEventDataRaw;
+	public TextMeshProUGUI debugTextEventDataProcessed;
+	public TextMeshProUGUI debugTextStartingContainerPosition;
+	public TextMeshProUGUI debugTextContainerPosition;
+	public TextMeshProUGUI debugTextPredictedContainerPosition;
+	public TextMeshProUGUI debugTextScrubValue;
+	public TextMeshProUGUI debugTextPredictedPage;
+	public TextMeshProUGUI debugTextContainerMinX;
+	public TextMeshProUGUI debugTextContainerMaxX;
+	public TextMeshProUGUI debugTextContainerMinY;
+	public TextMeshProUGUI debugTextContainerMaxY;
+	public TextMeshProUGUI debugTextContainerCenterPos;
+
+
 
 	bool showSliderTooltip;
 
@@ -60,12 +77,12 @@ public class ScrollSnapTooltip : MonoBehaviour, IPointerClickHandler, IPointerEn
 		get {
 			if (scrollRect.horizontal == true && scrollRect.vertical == false)
 			{
-				return axis = 1;
+				return axis = 0;
 			}
 			else
 			if (scrollRect.horizontal == false && scrollRect.vertical == true)
 			{
-				return axis = 0;
+				return axis = 1;
 			}
 			else
 			{
@@ -124,8 +141,9 @@ public class ScrollSnapTooltip : MonoBehaviour, IPointerClickHandler, IPointerEn
 
 	public void Update() 
 	{
-		if (showSliderTooltip)
-			SomeFunc(VRUIInputModule.instance.gazeControllerData.pointerEvent);
+		PointerEventData eventData = EventSystem.current.gameObject.GetComponent<StandaloneInputModuleCustom>().GetLastPointerEventDataPublic(-1);
+
+		GetNormalizedPosition(eventData);
 	}
 
 	public void ShowSliderTooltip() 
@@ -147,52 +165,76 @@ public class ScrollSnapTooltip : MonoBehaviour, IPointerClickHandler, IPointerEn
 
 	public void SomeFunc(PointerEventData eventData) 
 	{
-		float normalizedPosition = GetNormalizedPosition(eventData);
-		Vector3 predictedWorldPosition = GetPredictedContentPosition(normalizedPosition);
-		int predictedPage = scrollSnap.GetPageforPosition (predictedWorldPosition);
-		Debug.Log ("Preview page is " + predictedPage);
+		GetNormalizedPosition(eventData);
+		//Vector3 predictedWorldPosition = GetPredictedContentPosition(normalizedPosition);
+		//int predictedPage = scrollSnap.GetPageforPosition (predictedWorldPosition);
+		//Debug.Log ("Preview page is " + predictedPage);
 	}
 
 	/// <summary>s
 	/// Gets the closest page to the point the user clicked inside the scrollbar.
 	/// </summary>
-	public Vector3 GetPredictedContentPosition(float normalizedScrollValue)
+	public void GetPredictedContentPosition(float normalizedScrollValue)
 	{
 		//Find the bounds of the viewport and content
 		Bounds viewBounds = new Bounds (scrollRect.viewport.rect.center, scrollRect.viewport.rect.size);
 		Bounds contentBounds = new Bounds (scrollRect.content.rect.center, scrollRect.content.rect.size);
 		RectTransform contentRect = scrollRect.content;
 
-		// How much larger the content is then the scroll view.
-		float hiddenLength = contentBounds.size[Axis] - viewBounds.size[axis];
-		// Where the position of the lower left corner of the contents bounds should be, in the space of the view
-		float contentBoundsMinPosition = contentRect.localPosition[axis] - (normalizedScrollValue * hiddenLength);
-		// The new content localPosition in the space of the view.
-		float newLocalPosition = contentRect.localPosition[Axis] + contentBoundsMinPosition - contentBounds.min[axis];
+		debugTextContainerMinX.text = "Min X: " + scrollRect.content.rect.min.x;
+		debugTextContainerMaxX.text = "Max X: " + scrollRect.content.rect.max.x;
+		debugTextContainerMinY.text = "Min Y: " + scrollRect.content.rect.min.y;
+		debugTextContainerMaxY.text = "Max Y: " + scrollRect.content.rect.max.y;
+		debugTextContainerCenterPos.text = "Center: " + scrollRect.content.rect.center;
 
-		Vector3 localPosition = contentRect.localPosition;
-		localPosition[0] = newLocalPosition;
-		localPosition[1] = newLocalPosition;
-		//Vector3 localPositionToWorld = scrollRect.viewport.transform.TransformPoint (localPosition);
-		return localPosition;
+
+		// How much larger the content is then the scroll view.
+		float hiddenLength = contentBounds.size[Axis] - viewBounds.size[Axis];
+		// Where the position of the lower left corner of the contents bounds should be, in the space of the view
+		//float contentBoundsMinPosition = contentRect.localPosition[Axis] + (normalizedScrollValue * hiddenLength);
+		float contentBoundsMinPosition = scrollSnap._scrollStartPosition + (normalizedScrollValue * hiddenLength);
+		// The new content localPosition in the space of the view.
+		float newLocalPosition = contentBoundsMinPosition;
+
+		Vector3 localPosition = Vector3.zero;
+		localPosition [Axis] = scrollSnap._scrollStartPosition;
+
+		//Debug.Log ("Content rect CURRENT position is " + localPosition);
+		debugTextContainerPosition.text = "Current Container Position: " + scrollSnap._screensContainer.localPosition;
+		localPosition[Axis] = newLocalPosition;
+		debugTextPredictedContainerPosition.text = "Predicted Container Position " + localPosition;
+		//Debug.Log ("Content rect UPDATED position is " + localPosition);
+
+		int predictedPagePosition = scrollSnap.GetPageforPosition(localPosition);
+		//Debug.Log ("Content rect page is " + predictedPagePosition);
+		debugTextPredictedPage.text = "Predicted Page: " + predictedPagePosition;
 	}
 
 
 	/// <summary>
 	/// Get the normalized position of where the mouse clicked.
 	/// </summary>
-	public float GetNormalizedPosition(PointerEventData eventData)
+	public void GetNormalizedPosition(PointerEventData eventData)
 	{
+		debugTextContainerSize.text = "Container Size: " + scrollSnap._screensContainer.rect.size;
+
+		debugTextStartingContainerPosition.text = "Starting Scroll Position " + scrollSnap._scrollStartPosition;
+
 		Vector2 localCursorPoint = Vector2.zero;
-		Debug.Log ("EVENT DATA " + eventData.position + eventData.enterEventCamera + localCursorPoint);
 
 		RectTransformUtility.ScreenPointToLocalPointInRectangle (scrollbarRect, eventData.position, eventData.enterEventCamera, out localCursorPoint);
 
-
+		debugTextEventDataRaw.text = "Local Cursor Point: " + localCursorPoint;
 
 		localCursorPoint -=scrollbarRect.rect.position;
+		debugTextEventDataProcessed.text = "Processed Cursor Point: " + localCursorPoint;
+
 		float gazeScrubValue = Mathf.Clamp01(localCursorPoint[Axis] / scrollbarRect.rect.size[Axis]);
-		return gazeScrubValue;
+		debugTextScrubValue.text = "Scrub Value: " + gazeScrubValue;
+		//Debug.Log ("Normalized position " + gazeScrubValue);
+
+		// Try and get a page prediction for this scrub value
+		GetPredictedContentPosition(gazeScrubValue);
 	}
 
 

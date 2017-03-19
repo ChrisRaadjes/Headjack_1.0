@@ -6,25 +6,25 @@ namespace UnityEngine.UI.Extensions
 {
     public class ScrollSnapBase : MonoBehaviour, IBeginDragHandler, IDragHandler
     {
-        internal RectTransform _screensContainer;
-        internal bool _isVertical;
+        public RectTransform _screensContainer;
+        public bool _isVertical;
 
-        internal int _screens = 1;
+        public int _screens = 1;
 
-        internal float _scrollStartPosition;
-        internal float _childSize;
+        public float _scrollStartPosition;
+        public float _childSize;
         private float _childPos, _maskSize;
-        internal Vector2 _childAnchorPoint;
-        internal ScrollRect _scroll_rect;
-        internal Vector3 _lerp_target;
-        internal bool _lerp;
-        internal bool _pointerDown = false;
-        internal bool _settled = true;
-        internal Vector3 _startPosition = new Vector3();
+        public Vector2 _childAnchorPoint;
+        public ScrollRect _scroll_rect;
+        public Vector3 _lerp_target;
+        public bool _lerp;
+        public bool _pointerDown = false;
+        public bool _settled = true;
+        public Vector3 _startPosition = new Vector3();
         [Tooltip("The currently active page")]
-        internal int _currentPage;
-        internal int _previousPage;
-        internal int _halfNoVisibleItems;
+        public int _currentPage;
+        public int _previousPage;
+        public int _halfNoVisibleItems;
         private int _bottomItem, _topItem;
 
         [Serializable]
@@ -76,7 +76,7 @@ namespace UnityEngine.UI.Extensions
             {
                 return _currentPage;
             }
-            internal set
+            set
             {
                 if ((value != _currentPage && value >= 0 && value < _screensContainer.childCount) || (value == 0 && _screensContainer.childCount == 0))
                 {
@@ -110,7 +110,6 @@ namespace UnityEngine.UI.Extensions
         private SelectionChangeEndEvent m_OnSelectionChangeEndEvent = new SelectionChangeEndEvent();
         public SelectionChangeEndEvent OnSelectionChangeEndEvent { get { return m_OnSelectionChangeEndEvent; } set { m_OnSelectionChangeEndEvent = value; } }
 
-
         // Use this for initialization
         void Awake()
         {
@@ -118,7 +117,7 @@ namespace UnityEngine.UI.Extensions
 
             if (_scroll_rect.horizontalScrollbar || _scroll_rect.verticalScrollbar)
             {
-                Debug.LogWarning("Warning, using scrollbars with the Scroll Snap controls is not advised as it causes unpredictable results");
+               //Debug.LogWarning("Warning, using scrollbars with the Scroll Snap controls is not advised as it causes unpredictable results");
             }
 
             if (StartingScreen < 0)
@@ -148,7 +147,7 @@ namespace UnityEngine.UI.Extensions
                 PrevButton.GetComponent<Button>().onClick.AddListener(() => { PreviousScreen(); });
         }
 
-        internal void InitialiseChildObjectsFromScene()
+        public void InitialiseChildObjectsFromScene()
         {
             int childCount = _screensContainer.childCount;
             ChildObjects = new GameObject[childCount];
@@ -162,7 +161,7 @@ namespace UnityEngine.UI.Extensions
             }
         }
 
-        internal void InitialiseChildObjectsFromArray()
+        public void InitialiseChildObjectsFromArray()
         {
             int childCount = ChildObjects.Length;
             RectTransform childRect;
@@ -187,7 +186,7 @@ namespace UnityEngine.UI.Extensions
             }
         }
 
-        internal void UpdateVisible()
+        public void UpdateVisible()
         {
             //If there are no objects in the scene or a mask, exit
             if (!MaskArea || ChildObjects == null || ChildObjects.Length < 1 || _screensContainer.childCount < 1)
@@ -281,7 +280,7 @@ namespace UnityEngine.UI.Extensions
         /// </summary>
         /// <param name="pos">Position to test, normally the Scroll Rect container Local position</param>
         /// <returns>Closest Page number (zero indexed array value)</returns>
-        internal int GetPageforPosition(Vector3 pos)
+        public int GetPageforPosition(Vector3 pos)
         {
             return _isVertical ? 
                 -(int)Math.Round((pos.y - _scrollStartPosition) / _childSize) :
@@ -293,7 +292,7 @@ namespace UnityEngine.UI.Extensions
         /// </summary>
         /// <param name="pos">Position to test, normally the Scroll Rect container Local position</param>
         /// <returns>True / False, is the position in the bounds of a page</returns>
-        internal bool IsRectSettledOnaPage(Vector3 pos)
+        public bool IsRectSettledOnaPage(Vector3 pos)
         {
             return _isVertical ?
                 -((pos.y - _scrollStartPosition) / _childSize) == -(int)Math.Round((pos.y - _scrollStartPosition) / _childSize) :
@@ -305,7 +304,7 @@ namespace UnityEngine.UI.Extensions
         /// </summary>
         /// <param name="page">Page that the position is required for (Zero indexed array value)</param>
         /// <param name="target">Outputs the local position for the selected page</param>
-        internal void GetPositionforPage(int page, ref Vector3 target)
+        public void GetPositionforPage(int page, ref Vector3 target)
         {
             _childPos = -_childSize * page;
             if (_isVertical)
@@ -321,7 +320,7 @@ namespace UnityEngine.UI.Extensions
         /// <summary>
         /// Updates the _Lerp target to the closest page and updates the pagination bullets.  Each control's update loop will then handle the move.
         /// </summary>
-        internal void ScrollToClosestElement()
+        public void ScrollToClosestElement()
         {
             _lerp = true;
             CurrentPage = GetPageforPosition(_screensContainer.localPosition);
@@ -332,7 +331,7 @@ namespace UnityEngine.UI.Extensions
         /// changes the bullets on the bottom of the page - pagination
         /// </summary>
         /// <param name="targetScreen"></param>
-        internal void ChangeBulletsInfo(int targetScreen)
+        public void ChangeBulletsInfo(int targetScreen)
         {
             if (Pagination)
                 for (int i = 0; i < Pagination.transform.childCount; i++)
@@ -375,7 +374,7 @@ namespace UnityEngine.UI.Extensions
         /// <summary>
         /// Event fires when the user starts to change the page, either via swipe or button.
         /// </summary>
-        internal void StartScreenChange()
+        public void StartScreenChange()
         {
             OnSelectionChangeStartEvent.Invoke();
         }
@@ -383,7 +382,7 @@ namespace UnityEngine.UI.Extensions
         /// <summary>
         /// Event fires when the currently viewed page changes, also updates while the scroll is moving
         /// </summary>
-        internal void ScreenChange()
+        public void ScreenChange()
         {
             OnSelectionPageChangedEvent.Invoke(_currentPage);
         }
@@ -391,7 +390,7 @@ namespace UnityEngine.UI.Extensions
         /// <summary>
         /// Event fires when control settles on a page, outputs the new page number
         /// </summary>
-        internal void EndScreenChange()
+        public void EndScreenChange()
         {
             OnSelectionChangeEndEvent.Invoke(_currentPage);
             _settled = true;
@@ -418,6 +417,19 @@ namespace UnityEngine.UI.Extensions
         {
             _lerp = false;
         }
+
+		public void OnScrollBarDown()
+		{
+			_pointerDown = true;
+			_startPosition = _screensContainer.localPosition;
+			_lerp = false;
+		}
+
+		public void OnScrollBarUp()
+		{
+			ScrollToClosestElement();
+			_lerp = true;
+		}
 
         #endregion
     }
