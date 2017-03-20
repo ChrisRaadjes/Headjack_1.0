@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 using Headjack;
 using TMPro;
 
-public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler  
+public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
 {
 	// This class allows us to extend functionality of selectables
 	// without completely overriding existing functionality. 
@@ -42,21 +42,26 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 	public RectTransform sliderTooltip;
 	public TextMeshProUGUI sliderTooltipText;
 
+	[Header("Optional Variables")]
+	public bool showPreview;
+	public RectTransform sliderFillPreview;
+	public Image sliderFillImage;
+	public RectTransform sliderHandlePreview;
+	private DrivenRectTransformTracker tracker;
+
 	[Header("Show Tooltip On Hover")]
 	public bool showSliderTooltip;
 
-	private int axis;  // Travel direction of the referenced slider
+	private Vector2 offset;
+
 	public int Axis
 	{
-		get {
-			if (slider.direction == Slider.Direction.BottomToTop || slider.direction == Slider.Direction.TopToBottom)
-				return axis = 1;
-			else // If the direction is left to right or right to left 
-				return axis = 0;
-		}
-		set {
-			axis = value;
-		}
+		get { return (slider.direction == Slider.Direction.BottomToTop || slider.direction == Slider.Direction.TopToBottom) ? 1 : 0; }
+	}
+
+	public bool ReverseValue
+	{
+		get { return (slider.direction == Slider.Direction.RightToLeft || slider.direction == Slider.Direction.TopToBottom); }
 	}
 
 	void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
@@ -69,10 +74,8 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 		if (gameObject == eventData.pointerEnter ||
 		   IsGameObjectMatchInChildren (transform, eventData.pointerEnter))
 		{
-			ShowSliderTooltip ();
-
 			showSliderTooltip = true;
-			ShowSliderTooltip ();
+			ShowSliderTooltip (true);
 		}
 	}
 
@@ -82,7 +85,7 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 			IsGameObjectMatchInChildren (transform, eventData.pointerEnter))
 		{
 			showSliderTooltip = false;
-			HideSliderTooltip ();
+			ShowSliderTooltip(false);
 		}
 	}
 
@@ -105,8 +108,6 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 
 	public void Start()
 	{
-		//Debug.Log ("AXIS VALUE IS " + Axis);
-
 		// Set the anchored position of the slider tooltip to match the slider pivot itself
 		Vector2 newAnchorMin = sliderTooltip.anchorMin;
 		Vector2 newAnchorMax = sliderTooltip.anchorMax;
@@ -123,7 +124,7 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 		sliderTooltip.anchoredPosition = _tmp;
 
 		//Hide it 
-		HideSliderTooltip();
+		ShowSliderTooltip(false);
 	}
 
 	public void Update() 
@@ -132,50 +133,99 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 			UpdateSliderTooltip (VRUIInputModule.instance.gazeControllerData.pointerEvent);
 	}
 
-	public void ShowSliderTooltip() 
+	public void ShowSliderTooltip(bool visibility) 
 	{
-		//Debug.Log ("Show slider...");
-		sliderTooltip.gameObject.SetActive(true);
+		sliderTooltip.gameObject.SetActive(visibility);
+
+		if (showPreview) 
+		{
+			sliderFillPreview.gameObject.SetActive (visibility);
+			sliderHandlePreview.gameObject.SetActive (visibility);
+		}
 	}
 
-	public void HideSliderTooltip()
+	void IPointerDownHandler.OnPointerDown(PointerEventData eventData)
 	{
-		//Debug.Log ("Stop updating slider position");
-		sliderTooltip.gameObject.SetActive(false);
+		Debug.Log ("Pointer is down");
+		offset = Vector2.zero;
 	}
+		
 
 	public void UpdateSliderTooltip(PointerEventData eventData) 
 	{
-		//Debug.Log ("Updating slider tooltip");
-		Vector2 localCursorPoint = Vector2.zero;
+		Vector2 localCursorPoint;
 
 		if (!RectTransformUtility.ScreenPointToLocalPointInRectangle (sliderRect, eventData.position, eventData.enterEventCamera, out localCursorPoint))
 		{
 			return;
 		}
 
-		//Debug.Log ("BEFORE: Slider Tooltip position is " + sliderTooltip.anchoredPosition);
-
+		// Adjust the tooltip location
 		Vector2 _tmp = sliderTooltip.anchoredPosition;
 		_tmp.x = localCursorPoint.x;
 		sliderTooltip.anchoredPosition = _tmp;
 
+		// Get the normalized position of where we are looking
+		localCursorPoint -= sliderRect.rect.position;
 
-		//Debug.Log ("Local Cursor Point X is " + localCursorPoint);
-		//Debug.Log ("AFTER: Slider Tooltip position is " + sliderTooltip.anchoredPosition);
+		float val = Mathf.Clamp01(localCursorPoint[Axis] / sliderRect.rect.size[Axis]);
+		float normalizedValue = (ReverseValue ? 1f - val : val);
 
+		// Adjust the hit target preview based on the cursor point
+		if (showPreview) 
+		{
+			tracker.Clear();
+
+			// Adjust the position of the fill image using anchors
+			if (sliderFillPreview != null) 
+			{
+				tracker.Add(slider, sliderFillPreview, DrivenTransformProperties.Anchors);
+
+				Vector2 anchorMin = Vector2.zero;
+				Vector2 anchorMax = Vector2.one;
+
+				if(sliderFillImage != null && sliderFillImage.type == Image.Type.Filled) 
+				{
+					sliderFillImage.fillAmount = normalizedValue;
+				}
+				else
+				{
+					if(ReverseValue)
+						anchorMin[Axis] = 1 - normalizedValue;
+					else
+						anchorMax[Axis] = normalizedValue;
+				}
+
+				sliderFillPreview.anchorMin = anchorMin;
+				sliderFillPreview.anchorMax = anchorMax;
+			}
+
+			// Adjust the position of the handle image using a moving anchored point
+			if (sliderHandlePreview != null) 
+			{
+				tracker.Add (slider, sliderHandlePreview, DrivenTransformProperties.Anchors);
+
+				Vector2 anchorMin = Vector2.zero;
+				Vector2 anchorMax = Vector2.one;
+
+				anchorMin [Axis] = anchorMax [Axis] = (ReverseValue ? (1 - normalizedValue) : normalizedValue);
+				sliderHandlePreview.anchorMin = anchorMin;
+				sliderHandlePreview.anchorMax = anchorMax;
+
+				Debug.Log ("Normalized Value: " + normalizedValue + " Slider Preview Anchor " + anchorMin [Axis] + " and " + anchorMax [Axis]); 
+			}
+		}
+			
+		// If we're playing a video, we show the time for our cursor hit location
 		if (HeadjackStartup.instance.playingProject)
 		{
-			localCursorPoint -= sliderRect.rect.position;
 
-			float gazeScrubValue = Mathf.Clamp01(localCursorPoint[Axis] / sliderRect.rect.size[Axis]);
-
-			TimeSpan gazeVideoTime = TimeSpan.FromMilliseconds(ConvertDuration(App.Player.Duration, gazeScrubValue));
-			sliderTooltipText.text = gazeVideoTime.ToString();
+			TimeSpan videoTimespan = TimeSpan.FromMilliseconds(ConvertDuration(App.Player.Duration, normalizedValue));
+			sliderTooltipText.text = string.Format ("{0}:{1}:{2}", videoTimespan.Hours, videoTimespan.Minutes, videoTimespan.Seconds);  
 		}
 	}
 
-	// Takes a double converts it to a rounded milisecond time for the timespan preview
+	// Takes a double and converts it to a rounded milisecond time to use as a video timespan. 
 	public long ConvertDuration(long duration, float percentage) 
 	{
 		double durationDouble = (double)duration;
