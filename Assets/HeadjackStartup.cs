@@ -8,6 +8,19 @@ public class HeadjackStartup : MonoBehaviour {
 	public static HeadjackStartup instance;
 	public GameObject projectMenu;
 
+	/// <summary>
+	/// User interface view state which determines which controls perform which action.
+	/// </summary>
+	public enum UIViewState
+	{
+		BrowsingVideos,
+		SelectedVideo,
+		PlayingVideo,
+		PausedVideo,
+	}
+
+	public UIViewState viewState;
+
 	public bool playingProject;
 
 
@@ -50,63 +63,27 @@ public class HeadjackStartup : MonoBehaviour {
 
 		//Set the default browser view with no category (i.e "All");
 		VideoBrowser.instance.RefreshVideoList ();
-		VideoBrowser.instance.ShowBrowser (true);
-
-		/*
-		Vector3 currentMenuItemPosition = projectMenu.transform.position; 
-		GameObject currentMenuItem;
-		foreach (string currentProjectID in App.GetProjects())
-		{
-			currentMenuItem = (GameObject)Instantiate (projectItemPrefab, projectMenu.transform, false);
-			currentMenuItem.transform.position = currentMenuItemPosition;
-			currentMenuItemPosition.x += 0.65f; //move the current menu position so next menu item is placed correctly
-
-			//Set the project id of the newly created menu item (also sets project title and thumbnail)
-			currentMenuItem.GetComponent<ProjectMenu>().SetProjectId(currentProjectID);
-		}
-		*/
-
-		// Set quality settings
-		SetQualitySettings();
+		VideoBrowser.instance.Show (true);
 	}
-
-	/*
-	public void StartVideoPlayback(string videoP	rojectId, bool stream) 
-	{
-		// To enable this user experience we must do several things:
-		// 1. Check if the user is connected to wifi
-		// 2. Open the video and play the first frame no matter whether it's dl or not
-		// 3. Show the video UI; 
-
-		App.Play (videoProjectId, true, true);
-		App.
-
-	}
-	*/
 
 	public void SetQualitySettings() 
 	{
 		QualitySettings.antiAliasing = 2;
 	}
 
-
 	// A static method to play a project used called by a menu item.
 	// This static method disabled the menu before playing the project.
 	public void Play(string projectID, bool stream) 
 	{
-		// Disable the menu before starting video
-		//App.ShowCrosshair = false;
-		VideoBrowser.instance.ShowBrowser(false);
-		//projectMenu.SetActive (false);
-		playingProject = true;
 
+		EnterPlayingVideoState();
 		App.Play(projectID, stream, true, delegate(bool succes, string error) {
 
 			// when video is finished playing show menu
 			App.ShowCrosshair = true;
 			playingProject = false;
 			App.DestroyVideoPlayer ();
-			VideoBrowser.instance.ShowBrowser(true);
+			EnterBrowseVideoState();
 			//projectMenu.SetActive (true);
 		});
 			
@@ -117,20 +94,104 @@ public class HeadjackStartup : MonoBehaviour {
 	{
 	}
 
+	#region input code 
+
 	void Update () 
 	{
-		// When playing a video, pressing the universal back button returns the user to the menu
-		// TODO: Replace this with more advanced controls. 
-		if (playingProject && VRInput.Back.Pressed)
+		if (viewState == UIViewState.BrowsingVideos) 
 		{
-			App.ShowCrosshair = true;
-			playingProject = false;
-			App.DestroyVideoPlayer ();
-			projectMenu.SetActive (true);
+			UpdateInputBrowseVideo();
+		} 
+		else if (viewState == UIViewState.SelectedVideo) 
+		{
+			UpdateInputSelectedVideo();
+		} 
+		else if (viewState == UIViewState.PlayingVideo) 
+		{
+			UpdateInputPlayingVideo();
+		} 
+		else if (viewState == UIViewState.PausedVideo) 
+		{
+			UpdateInputPauseVideo();
 		}
 	}
 
-	public void SomeFunc() 
+	public void UpdateInputBrowseVideo() 
+	{
+		
+	}
+
+	public void UpdateInputSelectedVideo()
 	{
 	}
+
+	public void UpdateInputPlayingVideo()
+	{
+		// When playing a video, pressing the universal back button returns the user to the menu
+		// TODO: Replace this with more advanced controls. 
+		if (VRInput.Back.Pressed || Input.GetMouseButtonDown(1))
+		{
+			App.DestroyVideoPlayer ();
+		}
+	}
+
+	public void UpdateInputPauseVideo() 
+	{
+	}
+
+	#endregion
+
+	#region view state enters and exits
+
+	//TODO: Do I need the exit states? Probably not
+
+	public void EnterBrowseVideoState() 
+	{
+		viewState = UIViewState.BrowsingVideos;
+
+		VideoBrowser.instance.Show(true);
+		VideoControls.instance.Show(false);
+
+		// Selection is required
+		App.ShowCrosshair = true;
+
+		//We re-entered the video browser so we need to refresh the list
+		VideoBrowser.instance.RefreshVideoList ();
+
+	}
+
+	public void EnterSelectedVideoState() 
+	{
+		viewState = UIViewState.SelectedVideo;
+
+		VideoBrowser.instance.Show(false);
+		VideoControls.instance.Show (false);
+
+		// Selection is required
+		App.ShowCrosshair = true;
+	}
+
+	public void EnterPlayingVideoState() 
+	{
+		viewState = UIViewState.PlayingVideo;
+
+		VideoBrowser.instance.Show(false);
+		VideoControls.instance.Show(false);
+
+		//No selection required
+		App.ShowCrosshair = false;
+	}
+
+	public void EnterPausedVideoState() 
+	{
+		viewState = UIViewState.PausedVideo;
+
+		VideoBrowser.instance.Show(false);
+		VideoControls.instance.Show(true);
+
+		// Selection required
+		App.ShowCrosshair = true;
+	}
+
+	#endregion
 }

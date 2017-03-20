@@ -68,7 +68,6 @@ namespace UnityEngine.UI.Extensions
         {
             _screens = _screensContainer.childCount;
             _scroll_rect.verticalNormalizedPosition = 0;
-
             float _offset = 0;
             float _dimension = 0;
             Rect panelDimensions = gameObject.GetComponent<RectTransform>().rect;
@@ -78,15 +77,23 @@ namespace UnityEngine.UI.Extensions
             for (int i = 0; i < _screensContainer.transform.childCount; i++)
             {
                 RectTransform child = _screensContainer.transform.GetChild(i).gameObject.GetComponent<RectTransform>();
-                currentYPosition = _offset + i * pageStepValue;
+
+				if (_reverseDirection)
+					currentYPosition = _offset - (i * pageStepValue);
+				else
+					currentYPosition = _offset + (i * pageStepValue);
+
                 child.sizeDelta = new Vector2(panelDimensions.width, panelDimensions.height);
                 child.anchoredPosition = new Vector2(0f, currentYPosition);
                 child.anchorMin = child.anchorMax = child.pivot = _childAnchorPoint;
             }
 
-            _dimension = currentYPosition + _offset * -1;
+			_dimension = currentYPosition + (_offset * -1);
 
-            _screensContainer.GetComponent<RectTransform>().offsetMax = new Vector2(0f, _dimension);
+			if (!_reverseDirection)
+				_screensContainer.GetComponent<RectTransform> ().offsetMax = new Vector2 (0f, _dimension);
+			else
+				_screensContainer.GetComponent<RectTransform> ().offsetMax = new Vector2 (0f, _dimension);
         }
 
         /// <summary>

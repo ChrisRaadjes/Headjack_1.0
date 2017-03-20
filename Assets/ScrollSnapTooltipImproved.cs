@@ -3,12 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UI.Extensions;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using Headjack;
 using TMPro;
 
-public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+public class ScrollSnapTooltipImproved : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
 	// This class allows us to extend functionality of selectables
 	// without completely overriding existing functionality. 
@@ -34,8 +35,12 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 	public OnUnHover onUnhover;
 	public OnClick onClick;
 
+	[Header("Referenced Scrollsnap Variables")]
+	public ScrollRect scrollRect;
+	public ScrollSnapBase scrollSnap;
+
 	[Header("Referenced Slider Variables")]
-	public Slider slider;
+	public Slider slider; 
 	public RectTransform sliderRect;
 
 	[Header("Tooltip Variables")]
@@ -50,7 +55,7 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 	private DrivenRectTransformTracker tracker;
 
 	[Header("Show Tooltip On Hover")]
-	private bool showSliderTooltip;
+	public bool showSliderTooltip;
 
 	private Vector2 offset;
 
@@ -129,13 +134,13 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 
 	public void Update() 
 	{
+		/*
 		if (showSliderTooltip)
 			UpdateSliderTooltip (VRUIInputModule.instance.gazeControllerData.pointerEvent);
+		*/
 
-		if (showSliderTooltip) {
-			PointerEventData eventData = EventSystem.current.gameObject.GetComponent<StandaloneInputModuleCustom> ().GetLastPointerEventDataPublic (-1);
-		}
-			
+		PointerEventData eventData = EventSystem.current.gameObject.GetComponent<StandaloneInputModuleCustom> ().GetLastPointerEventDataPublic (-1);
+		UpdateSliderTooltip (eventData);
 	}
 
 	public void ShowSliderTooltip(bool visibility) 
@@ -148,13 +153,6 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 			sliderHandlePreview.gameObject.SetActive (visibility);
 		}
 	}
-
-	void IPointerDownHandler.OnPointerDown(PointerEventData eventData)
-	{
-		Debug.Log ("Pointer is down");
-		offset = Vector2.zero;
-	}
-		
 
 	public void UpdateSliderTooltip(PointerEventData eventData) 
 	{
@@ -176,6 +174,22 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 		float val = Mathf.Clamp01(localCursorPoint[Axis] / sliderRect.rect.size[Axis]);
 		float normalizedValue = (ReverseValue ? 1f - val : val);
 
+		int predictedPage = GetPageForNormalizedValue(normalizedValue);
+
+		Vector3 predictedPagePosition = Vector3.zero;
+		scrollSnap.GetPositionforPage(predictedPage, ref predictedPagePosition);
+
+		// Find values to normalize
+		int childCount = scrollSnap._screensContainer.childCount;
+		float maximumPosition = scrollSnap._screensContainer.GetChild (0).gameObject.transform.localPosition[Axis] - (scrollSnap._scroll_rect.viewport.rect.size[Axis] * 0.5f);
+		Debug.Log ("Maximum position " + maximumPosition);
+		float minimumPosition = scrollSnap._screensContainer.GetChild (childCount - 1).transform.localPosition[Axis] - (scrollSnap._scroll_rect.viewport.rect.size[Axis] * 0.5f);
+		Debug.Log("Minimum position " + minimumPosition);
+
+		// Normalize the value
+		float pageNormalizedValue = (predictedPagePosition[Axis] - minimumPosition) / (maximumPosition - minimumPosition);
+		Debug.Log ("Page: " + predictedPage + " Value: " + pageNormalizedValue + " Transform Position: " + predictedPagePosition);
+
 		// Adjust the hit target preview based on the cursor point
 		if (showPreview) 
 		{
@@ -191,21 +205,21 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 
 				if(sliderFillImage != null && sliderFillImage.type == Image.Type.Filled) 
 				{
-					sliderFillImage.fillAmount = normalizedValue;
+					sliderFillImage.fillAmount = pageNormalizedValue;
 				}
 				else
 				{
 					if(ReverseValue)
-						anchorMin[Axis] = 1 - normalizedValue;
+						anchorMin[Axis] = 1 - pageNormalizedValue;
 					else
-						anchorMax[Axis] = normalizedValue;
+						anchorMax[Axis] = pageNormalizedValue;
 				}
 
 				sliderFillPreview.anchorMin = anchorMin;
 				sliderFillPreview.anchorMax = anchorMax;
 			}
 
-			// Adjust the position of the handle image using a moving anchored point.
+			// Adjust the position of the handle image using a moving anchored point
 			if (sliderHandlePreview != null) 
 			{
 				tracker.Add (slider, sliderHandlePreview, DrivenTransformProperties.Anchors);
@@ -213,28 +227,35 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 				Vector2 anchorMin = Vector2.zero;
 				Vector2 anchorMax = Vector2.one;
 
-				anchorMin [Axis] = anchorMax [Axis] = (ReverseValue ? (1 - normalizedValue) : normalizedValue);
+				anchorMin [Axis] = anchorMax [Axis] = (ReverseValue ? (1 - pageNormalizedValue) : pageNormalizedValue);
 				sliderHandlePreview.anchorMin = anchorMin;
 				sliderHandlePreview.anchorMax = anchorMax;
-
-				Debug.Log ("Normalized Value: " + normalizedValue + " Slider Preview Anchor " + anchorMin [Axis] + " and " + anchorMax [Axis]); 
 			}
-		}
-			
-		// If we're playing a video, we show the time for our cursor hit location
-		if (HeadjackStartup.instance.playingProject)
-		{
-			TimeSpan videoTimespan = TimeSpan.FromMilliseconds(ConvertDuration(App.Player.Duration, normalizedValue));
-			sliderTooltipText.text = string.Format ("{0}:{1}:{2}", videoTimespan.Hours, videoTimespan.Minutes, videoTimespan.Seconds);  
 		}
 	}
 
-	// Takes a double and converts it to a rounded milisecond time to use as a video timespan. 
-	public long ConvertDuration(long duration, float percentage) 
+	public int GetPageForNormalizedValue (float normalizedValue)
 	{
-		double durationDouble = (double)duration;
-		double gazePointTime = durationDouble * ((double)percentage);
-		return (long)gazePointTime;
+		//Find the bounds of the viewport and content
+		Bounds viewBounds = new Bounds (scrollRect.viewport.rect.center, scrollRect.viewport.rect.size);
+		Bounds contentBounds = new Bounds (scrollRect.content.rect.center, scrollRect.content.rect.size);
+		RectTransform contentRect = scrollRect.content;
+
+		// How much larger the content is then the scroll view.
+		float hiddenLength = contentBounds.size[Axis] - viewBounds.size[Axis];
+
+		// Where the position of the lower left corner of the contents bounds should be, in the space of the view
+		float contentBoundsMinPosition = scrollSnap._scrollStartPosition + (normalizedValue * hiddenLength) * -1f;
+
+		// The new content localPosition in the space of the view.
+		float newLocalPosition = contentBoundsMinPosition;
+
+		Vector3 localPosition = Vector3.zero;
+		localPosition [Axis] = scrollSnap._scrollStartPosition;
+
+		localPosition[Axis] = newLocalPosition;
+
+		return scrollSnap.GetPageforPosition(localPosition);
 	}
 }
 

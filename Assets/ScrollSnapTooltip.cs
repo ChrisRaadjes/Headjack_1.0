@@ -192,7 +192,8 @@ public class ScrollSnapTooltip : MonoBehaviour, IPointerClickHandler, IPointerEn
 		float hiddenLength = contentBounds.size[Axis] - viewBounds.size[Axis];
 		// Where the position of the lower left corner of the contents bounds should be, in the space of the view
 		//float contentBoundsMinPosition = contentRect.localPosition[Axis] + (normalizedScrollValue * hiddenLength);
-		float contentBoundsMinPosition = scrollSnap._scrollStartPosition + (normalizedScrollValue * hiddenLength);
+		float contentBoundsMinPosition = scrollSnap._scrollStartPosition + (normalizedScrollValue * hiddenLength) * -1f;
+		Debug.Log ("Content Bounds MIN POS: " + contentBoundsMinPosition);
 		// The new content localPosition in the space of the view.
 		float newLocalPosition = contentBoundsMinPosition;
 

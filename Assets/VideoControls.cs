@@ -60,7 +60,7 @@ public class VideoControls : MonoBehaviour {
 		}
 	}
 
-	public void SetVisibility(bool visibility = true) 
+	public void Show(bool visibility = true) 
 	{
 		animator.SetBool ("Visible", visibility);	
 	}

@@ -14,11 +14,6 @@ public class VideoBrowser : MonoBehaviour {
 	public Transform videoProjectlist; 
 	public GameObject videoProjectTemplate;
 
-	[Header("Scrollbar Controls")]
-	public Scrollbar scrollbar;
-	public RectTransform scrollbarRect;
-	public ExtendedInputHandler scrollbarInput;
-
 	void Start () 
 	{
 		instance = this;
@@ -28,7 +23,7 @@ public class VideoBrowser : MonoBehaviour {
 	{
 	}
 
-	public void ShowBrowser(bool visibility= true)
+	public void Show(bool visibility= true)
 	{
 		animator.SetBool("Show", visibility);
 	}
