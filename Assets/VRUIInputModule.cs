@@ -24,6 +24,21 @@ public class VRUIInputModule : BaseInputModule {
 
 
 	private Camera UICamera;
+	public float CameraRotation
+	{
+		get
+		{
+			if (UICamera != null) 
+			{
+				return UICamera.transform.eulerAngles.x;
+			}
+			else 
+			{
+				Debug.LogAssertion ("No UI Camera found! Returning rotation 0"); 
+				return 0f;
+			}
+		}
+	}
 	// Laser pointers
 
 	protected override void Awake()

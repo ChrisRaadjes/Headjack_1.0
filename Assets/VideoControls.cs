@@ -11,8 +11,7 @@ public class VideoControls : MonoBehaviour {
 
 	public static VideoControls instance;
 
-	public UIOrigin origin;
-	private Camera UICamera;
+	public RotationNode origin;
 
 	public Animator animator;
 
@@ -68,8 +67,8 @@ public class VideoControls : MonoBehaviour {
 
 	public void Show(bool visibility = true) 
 	{
-
-		origin.LookRotation = UICamera.transform.rotation.x;
+		//This won't work for when you add controllers.
+		origin.LookRotation = VRUIInputModule.instance.CameraRotation;
 		
 		gameObject.SetActive (visibility);
 		animator.SetBool ("Show", visibility);	

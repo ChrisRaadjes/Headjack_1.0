@@ -5,7 +5,8 @@ using UnityEngine;
 /// <summary>
 /// Used to control the orientation of a given piece of UI in relation to the viewer
 /// </summary>
-public class UIOrigin : MonoBehaviour {
+public class RotationNode : MonoBehaviour 
+{
 
 	private Transform lookRotation;
 	public float LookRotation
@@ -14,18 +15,7 @@ public class UIOrigin : MonoBehaviour {
 		{ 
 			Vector3 _tmp = lookRotation.rotation.eulerAngles;
 			_tmp.x = value;
-			lookRotation.rotation.eulerAngles = _tmp;
+			lookRotation.localEulerAngles = _tmp;
 		}
-	}
-
-
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
 	}
 }
