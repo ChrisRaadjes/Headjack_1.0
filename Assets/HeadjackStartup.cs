@@ -28,6 +28,7 @@ public class HeadjackStartup : MonoBehaviour {
 	void Start () 
 	{
 		instance = this;
+		SetQualitySettings(); // Get rid of the APIs horrible quality settings
 
 		// Download data from the server such as video and thumbnail information for this app
 		// also creates the camera (autoCreateCamera = true) and a cardboadrd app starts in
@@ -62,8 +63,7 @@ public class HeadjackStartup : MonoBehaviour {
 		VRUIInputModule.instance.SetupUICamera ();
 
 		//Set the default browser view with no category (i.e "All");
-		VideoBrowser.instance.RefreshVideoList ();
-		VideoBrowser.instance.Show (true);
+		EnterBrowseVideoState();
 	}
 
 	public void SetQualitySettings() 
@@ -118,32 +118,42 @@ public class HeadjackStartup : MonoBehaviour {
 
 	public void UpdateInputBrowseVideo() 
 	{
-		
+		// Add universal input code for browsing video
+
 	}
 
 	public void UpdateInputSelectedVideo()
 	{
+		// Add universal input code for selecting a video
 	}
 
 	public void UpdateInputPlayingVideo()
 	{
 		// When playing a video, pressing the universal back button returns the user to the menu
 		// TODO: Replace this with more advanced controls. 
-		if (VRInput.Back.Pressed || Input.GetMouseButtonDown(1))
+		if (VRInput.Back.Pressed || VRInput.Confirm.Pressed || Input.GetMouseButtonDown(1))
 		{
-			App.DestroyVideoPlayer ();
+			EnterPausedVideoState();
 		}
 	}
 
 	public void UpdateInputPauseVideo() 
 	{
+		if (VRInput.Confirm.Pressed || Input.GetMouseButtonDown(1))
+		{
+			EnterPlayingVideoState();
+		}
+
+		if (VRInput.Back.Pressed) 
+		{
+			App.DestroyVideoPlayer();
+			EnterBrowseVideoState();
+		}
 	}
 
 	#endregion
 
 	#region view state enters and exits
-
-	//TODO: Do I need the exit states? Probably not
 
 	public void EnterBrowseVideoState() 
 	{
@@ -155,9 +165,8 @@ public class HeadjackStartup : MonoBehaviour {
 		// Selection is required
 		App.ShowCrosshair = true;
 
-		//We re-entered the video browser so we need to refresh the list
-		VideoBrowser.instance.RefreshVideoList ();
-
+		//We re-entered the video browser so we need to refresh the list (maybe not always?) 
+		VideoBrowser.instance.RefreshVideoList();
 	}
 
 	public void EnterSelectedVideoState() 

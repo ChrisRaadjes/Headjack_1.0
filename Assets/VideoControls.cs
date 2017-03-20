@@ -11,6 +11,9 @@ public class VideoControls : MonoBehaviour {
 
 	public static VideoControls instance;
 
+	public UIOrigin origin;
+	private Camera UICamera;
+
 	public Animator animator;
 
 	[Header("Video Control Interactables")]
@@ -38,6 +41,9 @@ public class VideoControls : MonoBehaviour {
 
 	void Start () 
 	{
+
+		instance = this;
+
 		//Set listeners
 		buttonPauseResume.onClick.AddListener(PauseResumeVideo);
 		buttonBack.onClick.AddListener(BackToVideoBrowser);
@@ -62,7 +68,11 @@ public class VideoControls : MonoBehaviour {
 
 	public void Show(bool visibility = true) 
 	{
-		animator.SetBool ("Visible", visibility);	
+
+		origin.LookRotation = UICamera.transform.rotation.x;
+		
+		gameObject.SetActive (visibility);
+		animator.SetBool ("Show", visibility);	
 	}
 
 	/// 

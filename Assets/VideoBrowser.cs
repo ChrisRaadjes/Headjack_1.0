@@ -14,7 +14,7 @@ public class VideoBrowser : MonoBehaviour {
 	public Transform videoProjectlist; 
 	public GameObject videoProjectTemplate;
 
-	void Start () 
+	void Awake () 
 	{
 		instance = this;
 	}
@@ -23,8 +23,9 @@ public class VideoBrowser : MonoBehaviour {
 	{
 	}
 
-	public void Show(bool visibility= true)
+	public void Show(bool visibility = true)
 	{
+		gameObject.SetActive(visibility);
 		animator.SetBool("Show", visibility);
 	}
 		

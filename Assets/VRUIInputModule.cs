@@ -101,10 +101,10 @@ public class VRUIInputModule : BaseInputModule {
 	{
 		if (base.eventSystem.currentSelectedGameObject)
 		{
-			Debug.Log ("Clearing currently selected object...");
+			//Debug.Log ("Clearing currently selected object...");
 			var go = base.eventSystem.currentSelectedGameObject;
 			base.eventSystem.SetSelectedGameObject (null);
-			Debug.Log ("Cleared selected object: " + go.name);
+			//Debug.Log ("Cleared selected object: " + go.name);
 		}
 	}
 		
