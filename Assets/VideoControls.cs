@@ -40,7 +40,6 @@ public class VideoControls : MonoBehaviour {
 
 	void Start () 
 	{
-
 		instance = this;
 
 		//Set listeners
@@ -50,8 +49,6 @@ public class VideoControls : MonoBehaviour {
 		// We use our custom input handler for the slider
 		// because we don't want to be calling SeekMS every frame.
 		videoProgressBarInput.onClick.AddListener(SeekVideoTime);
-		videoProgressBarInput.onClick.AddListener(ClickTest);
-		videoProgressBarInput.onHover.AddListener(HoverTest);
 
 		buttonForward.onClick.AddListener (ForwardVideo);
 		buttonRewind.onClick.AddListener (RewindVideo);
@@ -68,7 +65,7 @@ public class VideoControls : MonoBehaviour {
 	public void Show(bool visibility = true) 
 	{
 		//This won't work for when you add controllers.
-		origin.LookRotation = VRUIInputModule.instance.CameraRotation;
+		//origin.LookRotation = VRUIInputModule.instance.CameraRotation;
 		
 		gameObject.SetActive (visibility);
 		animator.SetBool ("Show", visibility);	
@@ -117,18 +114,6 @@ public class VideoControls : MonoBehaviour {
 	public void RewindVideo()
 	{
 		App.Player.SeekMs = System.Math.Max (App.Player.SeekMs - 15000, 0);
-	}
-
-	public void ClickTest()
-	{
-		// Test to see if SliderInputHandler is working
-		Debug.Log("You have clicked me");
-	}
-
-	public void HoverTest()
-	{
-		// Test to see if SliderInputHandler is working
-		Debug.Log("Hovering over a slider");
 	}
 
 	public void BackToVideoBrowser() 

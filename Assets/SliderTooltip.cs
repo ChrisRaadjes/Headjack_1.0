@@ -132,9 +132,12 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 		if (showSliderTooltip)
 			UpdateSliderTooltip (VRUIInputModule.instance.gazeControllerData.pointerEvent);
 
-		if (showSliderTooltip) {
+		/*
+		if (showSliderTooltip) 
+		{
 			PointerEventData eventData = EventSystem.current.gameObject.GetComponent<StandaloneInputModuleCustom> ().GetLastPointerEventDataPublic (-1);
 		}
+		*/
 			
 	}
 
@@ -222,7 +225,7 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 		}
 			
 		// If we're playing a video, we show the time for our cursor hit location
-		if (HeadjackStartup.instance.playingProject)
+		if (AppController.instance.playingProject)
 		{
 			TimeSpan videoTimespan = TimeSpan.FromMilliseconds(ConvertDuration(App.Player.Duration, normalizedValue));
 			sliderTooltipText.text = string.Format ("{0}:{1}:{2}", videoTimespan.Hours, videoTimespan.Minutes, videoTimespan.Seconds);  

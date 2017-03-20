@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Headjack;
 
-public class HeadjackStartup : MonoBehaviour {
+public class AppController : MonoBehaviour {
 
-	public static HeadjackStartup instance;
+	public static AppController instance;
 	public GameObject projectMenu;
 
 	/// <summary>
@@ -13,6 +13,7 @@ public class HeadjackStartup : MonoBehaviour {
 	/// </summary>
 	public enum UIViewState
 	{
+		LoadingApp,
 		BrowsingVideos,
 		SelectedVideo,
 		PlayingVideo,
@@ -28,6 +29,7 @@ public class HeadjackStartup : MonoBehaviour {
 	void Start () 
 	{
 		instance = this;
+		EnterLoadingAppState(); // Immediately enter the loading app state
 		SetQualitySettings(); // Get rid of the APIs horrible quality settings
 
 		// Download data from the server such as video and thumbnail information for this app
@@ -56,14 +58,11 @@ public class HeadjackStartup : MonoBehaviour {
 			return;
 		}
 
-		// Show crosshair in menu view so menu buttons can be selected by gaze
-		App.ShowCrosshair = true;
-
 		// Assign the UGUI Camera 
 		VRUIInputModule.instance.SetupUICamera ();
 
-		//Set the default browser view with no category (i.e "All");
-		EnterBrowseVideoState();
+		// Show the UI;
+		EnterBrowseVideoState(); 
 	}
 
 	public void SetQualitySettings() 
@@ -131,7 +130,7 @@ public class HeadjackStartup : MonoBehaviour {
 	{
 		// When playing a video, pressing the universal back button returns the user to the menu
 		// TODO: Replace this with more advanced controls. 
-		if (VRInput.Back.Pressed || VRInput.Confirm.Pressed || Input.GetMouseButtonDown(1))
+		if (VRInput.Back.Pressed || VRInput.Confirm.Pressed || Input.GetMouseButtonDown(2))
 		{
 			EnterPausedVideoState();
 		}
@@ -139,7 +138,8 @@ public class HeadjackStartup : MonoBehaviour {
 
 	public void UpdateInputPauseVideo() 
 	{
-		if (VRInput.Confirm.Pressed || Input.GetMouseButtonDown(1))
+		//if (VRInput.Confirm.Pressed || Input.GetMouseButtonDown(2))
+		if(Input.GetKey(KeyCode.C))
 		{
 			EnterPlayingVideoState();
 		}
@@ -154,6 +154,14 @@ public class HeadjackStartup : MonoBehaviour {
 	#endregion
 
 	#region view state enters and exits
+
+	public void EnterLoadingAppState()
+	{
+		viewState = UIViewState.LoadingApp;
+
+		VideoBrowser.instance.Show (false);
+		VideoControls.instance.Show (false);
+	}
 
 	public void EnterBrowseVideoState() 
 	{
@@ -182,6 +190,7 @@ public class HeadjackStartup : MonoBehaviour {
 
 	public void EnterPlayingVideoState() 
 	{
+		
 		viewState = UIViewState.PlayingVideo;
 
 		VideoBrowser.instance.Show(false);
@@ -193,6 +202,12 @@ public class HeadjackStartup : MonoBehaviour {
 
 	public void EnterPausedVideoState() 
 	{
+		//Pause the video if it is playing
+		if (App.Player.IsPlaying) 
+		{
+			App.Player.PauseResume ();
+		}
+
 		viewState = UIViewState.PausedVideo;
 
 		VideoBrowser.instance.Show(false);

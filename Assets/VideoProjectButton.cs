@@ -73,11 +73,11 @@ public class VideoProjectButton : MonoBehaviour {
 	{
 		if (UpdateDownloadState() == DownloadState.Downloaded)
 		{
-			HeadjackStartup.instance.Play (videoProjectId, false); // Play from downloaded content
+			AppController.instance.Play (videoProjectId, false); // Play from downloaded content
 		}
 		else
 		{
-			HeadjackStartup.instance.Play (videoProjectId, true); // Play using stream
+			AppController.instance.Play (videoProjectId, true); // Play using stream
 		}
 	}
 

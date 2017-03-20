@@ -113,11 +113,11 @@ public class ProjectMenu : MonoBehaviour {
 				// otherwise stream the project
 				if (UpdateDownloadState () == DownloadState.Downloaded)
 				{
-					HeadjackStartup.instance.Play (projectId, false);
+					AppController.instance.Play (projectId, false);
 				}
 				else
 				{
-					HeadjackStartup.instance.Play (projectId, true);
+					AppController.instance.Play (projectId, true);
 				}
 			}
 		}
