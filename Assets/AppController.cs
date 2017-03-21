@@ -5,6 +5,7 @@ using Headjack;
 
 public class AppController : MonoBehaviour {
 
+	bool delay = true;
 	public static AppController instance;
 	public GameObject projectMenu;
 
@@ -85,8 +86,7 @@ public class AppController : MonoBehaviour {
 			EnterBrowseVideoState();
 			//projectMenu.SetActive (true);
 		});
-			
-		App.Player.Pause();
+
 	}
 
 	public void PlayAdvanced(string projectID, bool stream) 
@@ -103,10 +103,11 @@ public class AppController : MonoBehaviour {
 		} 
 		else if (viewState == UIViewState.SelectedVideo) 
 		{
-			UpdateInputSelectedVideo();
+			Invoke ("UpdateInputSelectedVideo", 2f);
 		} 
 		else if (viewState == UIViewState.PlayingVideo) 
 		{
+			Debug.Log ("Playing video state");
 			UpdateInputPlayingVideo();
 		} 
 		else if (viewState == UIViewState.PausedVideo) 
@@ -130,8 +131,10 @@ public class AppController : MonoBehaviour {
 	{
 		// When playing a video, pressing the universal back button returns the user to the menu
 		// TODO: Replace this with more advanced controls. 
-		if (VRInput.Back.Pressed || VRInput.Confirm.Pressed || Input.GetMouseButtonDown(2))
+
+		if (VRInput.Confirm.Pressed && delay)
 		{
+			Debug.Log ("Showing pause UI");
 			EnterPausedVideoState();
 		}
 	}
@@ -165,6 +168,7 @@ public class AppController : MonoBehaviour {
 
 	public void EnterBrowseVideoState() 
 	{
+		VRInput.Confirm.Pressed = false;
 		viewState = UIViewState.BrowsingVideos;
 
 		VideoBrowser.instance.Show(true);
@@ -190,28 +194,38 @@ public class AppController : MonoBehaviour {
 
 	public void EnterPlayingVideoState() 
 	{
-		
 		viewState = UIViewState.PlayingVideo;
+
+		delay = false;
+		if (App.Player)
+		{
+			App.Player.Resume ();
+		}
+
+		Invoke ("SetDelay", 0.05f);
 
 		VideoBrowser.instance.Show(false);
 		VideoControls.instance.Show(false);
 
 		//No selection required
 		App.ShowCrosshair = false;
+
+	}
+
+	public void SetDelay() 
+	{
+		delay = true;
 	}
 
 	public void EnterPausedVideoState() 
 	{
 		//Pause the video if it is playing
-		if (App.Player.IsPlaying) 
-		{
-			App.Player.PauseResume ();
-		}
+		App.Player.Pause();
 
 		viewState = UIViewState.PausedVideo;
 
-		VideoBrowser.instance.Show(false);
-		VideoControls.instance.Show(true);
+		VideoBrowser.instance.Show (false);
+		VideoControls.instance.Show (true);
 
 		// Selection required
 		App.ShowCrosshair = true;

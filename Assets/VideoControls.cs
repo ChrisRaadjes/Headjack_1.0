@@ -79,6 +79,7 @@ public class VideoControls : MonoBehaviour {
 	{
 		Debug.Log ("App player object is " + App.Player.transform.name);
 		App.Player.PauseResume();
+		AppController.instance.EnterPlayingVideoState();
 		SetPauseResumeIcon (App.Player.IsPlaying);
 	}
 

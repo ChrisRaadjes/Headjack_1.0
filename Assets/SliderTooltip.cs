@@ -220,16 +220,13 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 				sliderHandlePreview.anchorMin = anchorMin;
 				sliderHandlePreview.anchorMax = anchorMax;
 
-				Debug.Log ("Normalized Value: " + normalizedValue + " Slider Preview Anchor " + anchorMin [Axis] + " and " + anchorMax [Axis]); 
+				//Debug.Log ("Normalized Value: " + normalizedValue + " Slider Preview Anchor " + anchorMin [Axis] + " and " + anchorMax [Axis]); 
 			}
 		}
 			
-		// If we're playing a video, we show the time for our cursor hit location
-		if (AppController.instance.playingProject)
-		{
-			TimeSpan videoTimespan = TimeSpan.FromMilliseconds(ConvertDuration(App.Player.Duration, normalizedValue));
-			sliderTooltipText.text = string.Format ("{0}:{1}:{2}", videoTimespan.Hours, videoTimespan.Minutes, videoTimespan.Seconds);  
-		}
+		// Show the timespan of the video on preview.
+		TimeSpan videoTimespan = TimeSpan.FromMilliseconds(ConvertDuration(App.Player.Duration, normalizedValue));
+		sliderTooltipText.text = string.Format ("{0}:{1}:{2}", videoTimespan.Hours, videoTimespan.Minutes, videoTimespan.Seconds);  
 	}
 
 	// Takes a double and converts it to a rounded milisecond time to use as a video timespan. 

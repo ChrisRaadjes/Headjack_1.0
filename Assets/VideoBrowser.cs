@@ -19,10 +19,6 @@ public class VideoBrowser : MonoBehaviour {
 		instance = this;
 	}
 
-	void Update () 
-	{
-	}
-
 	public void Show(bool visibility = true)
 	{
 		gameObject.SetActive(visibility);

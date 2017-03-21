@@ -290,8 +290,24 @@ public class VRUIInputModule : BaseInputModule {
 			ExecuteEvents.Execute (eventSystem.currentSelectedGameObject, GetBaseEventData (), ExecuteEvents.updateSelectedHandler);
 		}
 	}
-		
-	// Update is called once per frame
-	void Update () {
+
+	#region input save
+	[HideInInspector] public bool confirmPressed;
+
+	public void Update()
+	{
+		// Helper to immediatley clear pressed when transitioning between browse and play video
+		if (VRInput.Confirm.Pressed) 
+		{
+			Debug.Log ("Confirm was pressed");
+			confirmPressed = true;
+		}
+
+		if (VRInput.Confirm.Released) 
+		{
+			Debug.Log("Confirm was released");
+			confirmPressed = false;
+		}
 	}
+	#endregion
 }

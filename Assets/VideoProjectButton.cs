@@ -67,6 +67,7 @@ public class VideoProjectButton : MonoBehaviour {
 		// Listeners
 		buttonPlay.onClick.AddListener(PlayVideoProject);
 		buttonDownload.onClick.AddListener(DownloadVideoProject);
+		buttonPlay.onClick.AddListener(ClearConfirmPressed);
 	}
 
 	public void PlayVideoProject() 
@@ -119,5 +120,12 @@ public class VideoProjectButton : MonoBehaviour {
 
 		// Update download button text after the above action
 		UpdateDownloadState ();
+	}
+
+	/// <summary>
+	/// Immediatley clears confirm pressed so that the pause menu doesn't show when starting a video	/// </summary>
+	public void ClearConfirmPressed()
+	{
+		VRUIInputModule.instance.confirmPressed = false;
 	}
 }
