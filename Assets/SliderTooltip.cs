@@ -72,7 +72,7 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 	void IPointerEnterHandler.OnPointerEnter(PointerEventData eventData) 
 	{
 		if (gameObject == eventData.pointerEnter ||
-		   IsGameObjectMatchInChildren (transform, eventData.pointerEnter))
+			IsGameObjectMatchInChildren (transform, eventData.pointerEnter))
 		{
 			showSliderTooltip = true;
 			ShowSliderTooltip (true);
@@ -138,7 +138,7 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 			PointerEventData eventData = EventSystem.current.gameObject.GetComponent<StandaloneInputModuleCustom> ().GetLastPointerEventDataPublic (-1);
 		}
 		*/
-			
+
 	}
 
 	public void ShowSliderTooltip(bool visibility) 
@@ -157,14 +157,13 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 		Debug.Log ("Pointer is down");
 		offset = Vector2.zero;
 	}
-		
 
-	public void UpdateSliderTooltip(PointerEventData eventData) 
+
+	public void UpdateSliderTooltip(PointerEventData eventData)
 	{
 		Vector2 localCursorPoint;
 
-		if (!RectTransformUtility.ScreenPointToLocalPointInRectangle (sliderRect, eventData.position, eventData.enterEventCamera, out localCursorPoint))
-		{
+		if (!RectTransformUtility.ScreenPointToLocalPointInRectangle (sliderRect, eventData.position, eventData.enterEventCamera, out localCursorPoint)) {
 			return;
 		}
 
@@ -176,65 +175,91 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 		// Get the normalized position of where we are looking
 		localCursorPoint -= sliderRect.rect.position;
 
-		float val = Mathf.Clamp01(localCursorPoint[Axis] / sliderRect.rect.size[Axis]);
-		float normalizedValue = (ReverseValue ? 1f - val : val);
+		float val = Mathf.Clamp01 (localCursorPoint [Axis] / sliderRect.rect.size [Axis]);
+		float gazeNormalizedValue = (ReverseValue ? 1f - val : val);
 
 		// Adjust the hit target preview based on the cursor point
 		if (showPreview) 
 		{
-			tracker.Clear();
-
-			// Adjust the position of the fill image using anchors
-			if (sliderFillPreview != null) 
-			{
-				tracker.Add(slider, sliderFillPreview, DrivenTransformProperties.Anchors);
-
-				Vector2 anchorMin = Vector2.zero;
-				Vector2 anchorMax = Vector2.one;
-
-				if(sliderFillImage != null && sliderFillImage.type == Image.Type.Filled) 
-				{
-					sliderFillImage.fillAmount = normalizedValue;
-				}
-				else
-				{
-					if(ReverseValue)
-						anchorMin[Axis] = 1 - normalizedValue;
-					else
-						anchorMax[Axis] = normalizedValue;
-				}
-
-				sliderFillPreview.anchorMin = anchorMin;
-				sliderFillPreview.anchorMax = anchorMax;
-			}
-
-			// Adjust the position of the handle image using a moving anchored point.
-			if (sliderHandlePreview != null) 
-			{
-				tracker.Add (slider, sliderHandlePreview, DrivenTransformProperties.Anchors);
-
-				Vector2 anchorMin = Vector2.zero;
-				Vector2 anchorMax = Vector2.one;
-
-				anchorMin [Axis] = anchorMax [Axis] = (ReverseValue ? (1 - normalizedValue) : normalizedValue);
-				sliderHandlePreview.anchorMin = anchorMin;
-				sliderHandlePreview.anchorMax = anchorMax;
-
-				//Debug.Log ("Normalized Value: " + normalizedValue + " Slider Preview Anchor " + anchorMin [Axis] + " and " + anchorMax [Axis]); 
-			}
+			DrivePreviewImages(gazeNormalizedValue);
 		}
-			
-		// Show the timespan of the video on preview.
-		TimeSpan videoTimespan = TimeSpan.FromMilliseconds(ConvertDuration(App.Player.Duration, normalizedValue));
-		sliderTooltipText.text = string.Format ("{0}:{1}:{2}", videoTimespan.Hours, videoTimespan.Minutes, videoTimespan.Seconds);  
-	}
 
-	// Takes a double and converts it to a rounded milisecond time to use as a video timespan. 
-	public long ConvertDuration(long duration, float percentage) 
+		// Show the timespan of the video on preview.
+		TimeSpan videoTimespan = TimeSpan.FromMilliseconds (ConvertDurationToMS (App.Player.Duration, gazeNormalizedValue));
+		WriteVideoTime(videoTimespan);
+	}
+		
+	/// <summary>
+	/// Takes a double and converts it to a rounded milisecond time to use as a video timespan. 
+	/// This function is called once per play of a video.
+	/// </summary>
+	public long ConvertDurationToMS(long duration, float percentage)
 	{
 		double durationDouble = (double)duration;
 		double gazePointTime = durationDouble * ((double)percentage);
 		return (long)gazePointTime;
+	}
+
+	/// <summary>
+	/// Writes out the video string;
+	/// Should only be called once per video play.
+	/// </summary>
+	public void WriteVideoTime(TimeSpan videoTimespan)
+	{
+		string format = null;
+
+		if (videoTimespan.Hours > 0) 
+		{
+			sliderTooltipText.text = string.Format ("{0:00}:{1:00}:{2:00}", videoTimespan.Hours, videoTimespan.Minutes, videoTimespan.Seconds);
+		} 
+		else 
+		{
+			if (videoTimespan.Minutes < 10) 
+			{
+				sliderTooltipText.text = string.Format("{0}:{1:00}", videoTimespan.Minutes, videoTimespan.Seconds);
+			} 
+			else 
+			{
+				sliderTooltipText.text = string.Format ("{0:00}:{1:00}", videoTimespan.Minutes, videoTimespan.Seconds);
+			}
+		}
+	}
+
+	public void DrivePreviewImages(float gazeNormalizedValue) 
+	{
+		tracker.Clear ();
+
+		// Adjust the position of the fill image using anchors
+		if (sliderFillPreview != null) {
+			tracker.Add (slider, sliderFillPreview, DrivenTransformProperties.Anchors);
+
+			Vector2 anchorMin = Vector2.zero;
+			Vector2 anchorMax = Vector2.one;
+
+			if (sliderFillImage != null && sliderFillImage.type == Image.Type.Filled) {
+				sliderFillImage.fillAmount = gazeNormalizedValue;
+			} else {
+				if (ReverseValue)
+					anchorMin [Axis] = 1 - gazeNormalizedValue;
+				else
+					anchorMax [Axis] = gazeNormalizedValue;
+			}
+
+			sliderFillPreview.anchorMin = anchorMin;
+			sliderFillPreview.anchorMax = anchorMax;
+		}
+
+		// Adjust the position of the handle image using a moving anchored point.
+		if (sliderHandlePreview != null) {
+			tracker.Add (slider, sliderHandlePreview, DrivenTransformProperties.Anchors);
+
+			Vector2 anchorMin = Vector2.zero;
+			Vector2 anchorMax = Vector2.one;
+
+			anchorMin [Axis] = anchorMax [Axis] = (ReverseValue ? (1 - gazeNormalizedValue) : gazeNormalizedValue);
+			sliderHandlePreview.anchorMin = anchorMin;
+			sliderHandlePreview.anchorMax = anchorMax;
+		}
 	}
 }
 

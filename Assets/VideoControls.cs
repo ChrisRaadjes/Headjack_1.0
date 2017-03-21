@@ -29,6 +29,9 @@ public class VideoControls : MonoBehaviour {
 	public ExtendedInputHandler videoProgressBarInput;
 	private bool setSeek = true;
 
+	[Header("Other Controls")]
+	public Button buttonBackToBrowse;
+
 	[Space]
 	public TextMeshProUGUI textCurrentTime;
 	public TextMeshProUGUI textRemainingTime;
@@ -50,8 +53,12 @@ public class VideoControls : MonoBehaviour {
 		// because we don't want to be calling SeekMS every frame.
 		videoProgressBarInput.onClick.AddListener(SeekVideoTime);
 
+		//These are tests to be activated in the 2.0 template
+		/*
 		buttonForward.onClick.AddListener (ForwardVideo);
 		buttonRewind.onClick.AddListener (RewindVideo);
+		*/
+
 	}
 
 	void Update () 
@@ -91,6 +98,7 @@ public class VideoControls : MonoBehaviour {
 			buttonPauseResumeIcon.sprite = buttonIconPlay;
 	}
 
+	// Set seek doesn't work in this template
 	public void SeekVideoTime()
 	{
 		//Setting seek, so flip bool to make sure Update() doesn't change slider value
@@ -105,6 +113,9 @@ public class VideoControls : MonoBehaviour {
 		setSeek = true; 
 	}
 
+	/// <summary>
+	/// Test function only.
+	/// </summary>
 	public void ForwardVideo()
 	{
 		long duration = App.Player.Duration;
@@ -112,6 +123,9 @@ public class VideoControls : MonoBehaviour {
 		App.Player.SeekMs = System.Math.Min (seekms + 15000, duration <= 0 ? (seekms + 15000) : duration);
 	}
 
+	/// <summary>
+	/// Test function only.
+	/// </summary>
 	public void RewindVideo()
 	{
 		App.Player.SeekMs = System.Math.Max (App.Player.SeekMs - 15000, 0);
@@ -119,7 +133,6 @@ public class VideoControls : MonoBehaviour {
 
 	public void BackToVideoBrowser() 
 	{
-		// It would be easier to port over a state controller maybe rather than keep track of what UI
-		// needs to be shown where and where. 
+		AppController.instance.EnterBrowseVideoState();
 	}
 }

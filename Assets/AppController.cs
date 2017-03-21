@@ -5,7 +5,6 @@ using Headjack;
 
 public class AppController : MonoBehaviour {
 
-	bool delay = true;
 	public static AppController instance;
 	public GameObject projectMenu;
 
@@ -24,6 +23,7 @@ public class AppController : MonoBehaviour {
 	public UIViewState viewState;
 
 	public bool playingProject;
+
 
 
 	// Use this for initialization
@@ -127,12 +127,19 @@ public class AppController : MonoBehaviour {
 		// Add universal input code for selecting a video
 	}
 
+	int delayInput;
 	public void UpdateInputPlayingVideo()
 	{
 		// When playing a video, pressing the universal back button returns the user to the menu
 		// TODO: Replace this with more advanced controls. 
 
-		if (VRInput.Confirm.Pressed && delay)
+		delayInput = delayInput - 1;
+
+		if (delayInput == 0)
+			Debug.Log ("DELAY INPUT IS: " + delayInput);
+
+		//The delay is to make sure the pause screen doesn't trigger on entry.
+		if(VRInput.Confirm.Pressed && delayInput < 1)
 		{
 			Debug.Log ("Showing pause UI");
 			EnterPausedVideoState();
@@ -141,6 +148,11 @@ public class AppController : MonoBehaviour {
 
 	public void UpdateInputPauseVideo() 
 	{
+		//Pressing confirm opens the video controls without pausing it.
+		//Pressing back opens the video controls with it paused. 
+		//Pressing back again removes the current view. 
+		//All this code should be moved into the UpdateInputPlayingVideo state.
+
 		//if (VRInput.Confirm.Pressed || Input.GetMouseButtonDown(2))
 		if(Input.GetKey(KeyCode.C))
 		{
@@ -194,27 +206,22 @@ public class AppController : MonoBehaviour {
 
 	public void EnterPlayingVideoState() 
 	{
-		viewState = UIViewState.PlayingVideo;
+		// Wait 25 frames before accepting any input from this state.
+		delayInput = 25;
 
-		delay = false;
+		viewState = UIViewState.PlayingVideo;
+	
 		if (App.Player)
 		{
 			App.Player.Resume ();
 		}
 
-		Invoke ("SetDelay", 0.05f);
-
 		VideoBrowser.instance.Show(false);
 		VideoControls.instance.Show(false);
 
-		//No selection required
+		//Initially no selection required
 		App.ShowCrosshair = false;
 
-	}
-
-	public void SetDelay() 
-	{
-		delay = true;
 	}
 
 	public void EnterPausedVideoState() 
