@@ -201,7 +201,7 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 	}
 
 	/// <summary>
-	/// Writes out the video string;
+	/// Writes out the video time string;
 	/// Should only be called once per video play.
 	/// </summary>
 	public void WriteVideoTime(TimeSpan videoTimespan)

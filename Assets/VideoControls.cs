@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -30,15 +31,15 @@ public class VideoControls : MonoBehaviour {
 	private bool setSeek = true;
 
 	[Header("Other Controls")]
+	public Button buttonReplayVideo;
 	public Button buttonBackToBrowse;
-
 	[Space]
 	public TextMeshProUGUI textCurrentTime;
 	public TextMeshProUGUI textRemainingTime;
+
 	[Header("Other Controls")]
 	public Button buttonRewind;
 	public Button buttonForward;
-	public Button buttonBack;
 
 
 	void Start () 
@@ -47,7 +48,10 @@ public class VideoControls : MonoBehaviour {
 
 		//Set listeners
 		buttonPauseResume.onClick.AddListener(PauseResumeVideo);
-		buttonBack.onClick.AddListener(BackToVideoBrowser);
+		buttonReplayVideo.onClick.AddListener(ReplayVideo);
+		buttonBackToBrowse.onClick.AddListener(BackToVideoBrowser);
+
+		ShowReplayButton(false);
 
 		// We use our custom input handler for the slider
 		// because we don't want to be calling SeekMS every frame.
@@ -63,16 +67,26 @@ public class VideoControls : MonoBehaviour {
 
 	void Update () 
 	{
-		if (setSeek)  // Set seek is set by SliderInputHanlder events, and immediatley consumed. 
+		if (setSeek)  // Set seek is set by SliderInputHandler events, and immediatley consumed. 
 		{
 			videoProgressBar.value = App.Player.Seek;
 		}
+
+		// Write the timespan values
+		TimeSpan currentTime = TimeSpan.FromMilliseconds(VideoTimeUtility.ConvertTimeToMSFromPercentage(App.Player.Duration, App.Player.Seek));
+		TimeSpan remainingTime = TimeSpan.FromMilliseconds(VideoTimeUtility.ConvertTimeToMs((App.Player.Duration - App.Player.SeekMs)));
+		
+		VideoTimeUtility.WriteVideoTime (textCurrentTime, currentTime);
+		VideoTimeUtility.WriteVideoTime (textRemainingTime, remainingTime);
 	}
 
 	public void Show(bool visibility = true) 
 	{
-		//This won't work for when you add controllers.
-		//origin.LookRotation = VRUIInputModule.instance.CameraRotation;
+		//Null-check to prevent this from being called at the start
+		if (origin != null)
+		{
+			origin.LookRotation = VRUIInputModule.instance.CameraRotationY;
+		}
 		
 		gameObject.SetActive (visibility);
 		animator.SetBool ("Show", visibility);	
@@ -87,7 +101,7 @@ public class VideoControls : MonoBehaviour {
 		Debug.Log ("App player object is " + App.Player.transform.name);
 		App.Player.PauseResume();
 		AppController.instance.EnterPlayingVideoState();
-		SetPauseResumeIcon (App.Player.IsPlaying);
+		SetPauseResumeIcon(App.Player.IsPlaying);
 	}
 
 	public void SetPauseResumeIcon(bool isPlaying = true)
@@ -133,6 +147,42 @@ public class VideoControls : MonoBehaviour {
 
 	public void BackToVideoBrowser() 
 	{
+		// Check to see if we're playing and if so destroy it before continuing
+		if (App.Player.IsPlaying)
+		{
+			App.DestroyVideoPlayer ();
+		}
+
 		AppController.instance.EnterBrowseVideoState();
+	}
+
+	private bool showReplayButton;
+	public void ShowReplayButton(bool show) 
+	{
+		// Swap out the pause resume button for the replay button.
+		// Gets called by UpdateInputPlayingVideo (true)
+		// and UpdateInputPauseVideo(false)
+
+		showReplayButton = show;
+		buttonPauseResume.gameObject.SetActive(!show);
+		buttonReplayVideo.gameObject.SetActive(show);
+	}
+
+	public void ReplayVideo()
+	{
+		// For debug purposes return the isPlaying state
+		Debug.Log("VIDEO PLAYER IS PLAYING: " + App.Player.IsPlaying);
+
+		// Restart the video from frame 0
+		//App.Player.Seek = 0f;
+
+		//This is a brute hack, but only way this works for now
+		App.DestroyVideoPlayer();
+		ShowReplayButton(false);
+
+		// Resume playing the video
+		AppController.instance.Play(AppController.instance.lastProjectID, AppController.instance.lastProjectStreamed);
+
+		//Swap out the replay button for the pause resume button
 	}
 }

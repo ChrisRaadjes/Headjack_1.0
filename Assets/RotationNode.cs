@@ -7,15 +7,15 @@ using UnityEngine;
 /// </summary>
 public class RotationNode : MonoBehaviour 
 {
-
-	private Transform lookRotation;
 	public float LookRotation
 	{
+		get
+		{
+			return transform.localRotation.eulerAngles.y;
+		}
 		set 
-		{ 
-			Vector3 _tmp = lookRotation.rotation.eulerAngles;
-			_tmp.x = value;
-			lookRotation.localEulerAngles = _tmp;
+		{
+			transform.localRotation = Quaternion.Euler (0f, value, 0f);
 		}
 	}
 }

@@ -24,13 +24,13 @@ public class VRUIInputModule : BaseInputModule {
 
 
 	private Camera UICamera;
-	public float CameraRotation
+	public float CameraRotationY
 	{
-		get
+		get 
 		{
 			if (UICamera != null) 
 			{
-				return UICamera.transform.eulerAngles.x;
+				return UICamera.transform.eulerAngles.y;
 			}
 			else 
 			{
@@ -39,6 +39,7 @@ public class VRUIInputModule : BaseInputModule {
 			}
 		}
 	}
+		
 	// Laser pointers
 
 	protected override void Awake()

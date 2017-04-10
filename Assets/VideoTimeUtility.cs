@@ -1,22 +1,33 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using TMPro;
 
-public class VideoTimeUtility 
+public static class VideoTimeUtility 
 {
+	/// <summary>
+	/// Converts a given video time to MS using a long.
+	/// </summary>
+	public static long ConvertTimeToMs(long duration) 
+	{
+		double durationDouble = (double)duration;
+		return (long)durationDouble;
+	}
+
 	/// <summary>
 	/// Converts a given video time to MS given a percentage;
 	/// </summary>
-
-	public long ConvertTimeToMS(long duration, float percentage)
+	public static long ConvertTimeToMSFromPercentage(long duration, float percentage)
 	{
 		double durationDouble = (double)duration;
 		double gazePointTime = durationDouble * ((double)percentage);
 		return (long)gazePointTime;
 	}
 
-	public string FormatTimespanToString(TimeSpan convertTimespan)
+	/// <summary>
+	/// Returns a string format for a given video time
+	/// </summary>
+	public static string FormatTimespanToString(TimeSpan convertTimespan)
 	{
 		string format = null;
 
@@ -33,6 +44,30 @@ public class VideoTimeUtility
 			else 
 			{
 				return string.Format("{0:00}:{1:00}", convertTimespan.Minutes, convertTimespan.Seconds);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Writes out the video time string;
+	/// </summary>
+	public static void WriteVideoTime(TextMeshProUGUI textMesh, TimeSpan videoTimespan)
+	{
+		string format = null;
+
+		if (videoTimespan.Hours > 0) 
+		{
+			textMesh.text = string.Format ("{0:00}:{1:00}:{2:00}", videoTimespan.Hours, videoTimespan.Minutes, videoTimespan.Seconds);
+		} 
+		else 
+		{
+			if (videoTimespan.Minutes < 10) 
+			{
+				textMesh.text = string.Format("{0}:{1:00}", videoTimespan.Minutes, videoTimespan.Seconds);
+			} 
+			else 
+			{
+				textMesh.text = string.Format ("{0:00}:{1:00}", videoTimespan.Minutes, videoTimespan.Seconds);
 			}
 		}
 	}

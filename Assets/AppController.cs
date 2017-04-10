@@ -23,6 +23,8 @@ public class AppController : MonoBehaviour {
 	public UIViewState viewState;
 
 	public bool playingProject;
+	public string lastProjectID;
+	public bool lastProjectStreamed;
 
 
 
@@ -75,22 +77,35 @@ public class AppController : MonoBehaviour {
 	// This static method disabled the menu before playing the project.
 	public void Play(string projectID, bool stream) 
 	{
+		// Save the projectID string and stream state so we can replay them
+		lastProjectID = projectID;
+		lastProjectStreamed = stream;
 
+		// Enter the playing video state to process input
 		EnterPlayingVideoState();
+
+		// Start playing
 		App.Play(projectID, stream, true, delegate(bool succes, string error) {
 
-			// when video is finished playing show menu
-			App.ShowCrosshair = true;
-			playingProject = false;
-			App.DestroyVideoPlayer ();
-			EnterBrowseVideoState();
-			//projectMenu.SetActive (true);
+			// When video is finished playing show video controls
+			// where the pause/resume button is replaced with replay
+			VideoControls.instance.ShowReplayButton (true);
+			VideoControls.instance.Show(true);
+			EnterPausedVideoState ();
 		});
 
-	}
+		/*
+		// Old call 
+		App.Play(projectID, stream, true, delegate(bool succes, string error) {
 
-	public void PlayAdvanced(string projectID, bool stream) 
-	{
+			// When video is finished playing show menu
+			App.ShowCrosshair = true;
+			playingProject = false;
+			App.DestroyVideoPlayer();
+			EnterBrowseVideoState();
+		});
+		*/
+
 	}
 
 	#region input code 
@@ -107,7 +122,6 @@ public class AppController : MonoBehaviour {
 		} 
 		else if (viewState == UIViewState.PlayingVideo) 
 		{
-			Debug.Log ("Playing video state");
 			UpdateInputPlayingVideo();
 		} 
 		else if (viewState == UIViewState.PausedVideo) 
@@ -133,10 +147,8 @@ public class AppController : MonoBehaviour {
 		// When playing a video, pressing the universal back button returns the user to the menu
 		// TODO: Replace this with more advanced controls. 
 
+		// Set a delay to prevent our input from immediately affecting our video player
 		delayInput = delayInput - 1;
-
-		if (delayInput == 0)
-			Debug.Log ("DELAY INPUT IS: " + delayInput);
 
 		//The delay is to make sure the pause screen doesn't trigger on entry.
 		if(VRInput.Confirm.Pressed && delayInput < 1)
@@ -144,6 +156,10 @@ public class AppController : MonoBehaviour {
 			Debug.Log ("Showing pause UI");
 			EnterPausedVideoState();
 		}
+
+		// Check to see whether the video has reached the end of its duration.
+		// Rather than returning to the browser we want to give the player a chance
+		// to repeat playing a video.
 	}
 
 	public void UpdateInputPauseVideo() 
