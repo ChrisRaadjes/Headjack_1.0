@@ -15,6 +15,7 @@ public class AppController : MonoBehaviour {
 	{
 		LoadingApp,
 		BrowsingVideos,
+		VideoDetails,
 		SelectedVideo,
 		PlayingVideo,
 		PausedVideo,
@@ -112,14 +113,20 @@ public class AppController : MonoBehaviour {
 
 	void Update () 
 	{
-		if (viewState == UIViewState.BrowsingVideos) 
+		if (viewState == UIViewState.BrowsingVideos)
 		{
-			UpdateInputBrowseVideo();
-		} 
-		else if (viewState == UIViewState.SelectedVideo) 
+			UpdateInputBrowseVideo ();
+		}
+		else
+		if (viewState == UIViewState.SelectedVideo)
 		{
 			Invoke ("UpdateInputSelectedVideo", 2f);
-		} 
+		}
+		else
+		if (viewState == UIViewState.VideoDetails)
+		{
+			UpdateInputSelectedVideo ();
+		}
 		else if (viewState == UIViewState.PlayingVideo) 
 		{
 			UpdateInputPlayingVideo();
@@ -134,6 +141,11 @@ public class AppController : MonoBehaviour {
 	{
 		// Add universal input code for browsing video
 
+	}
+
+	public void UpdateVideoDetails()
+	{
+		// Add universal input code for viewing project details
 	}
 
 	public void UpdateInputSelectedVideo()
@@ -191,6 +203,7 @@ public class AppController : MonoBehaviour {
 		viewState = UIViewState.LoadingApp;
 
 		VideoBrowser.instance.Show (false);
+		VideoDetails.instance.Show (false);
 		VideoControls.instance.Show (false);
 	}
 
@@ -200,6 +213,7 @@ public class AppController : MonoBehaviour {
 		viewState = UIViewState.BrowsingVideos;
 
 		VideoBrowser.instance.Show(true);
+		VideoDetails.instance.Show (false);
 		VideoControls.instance.Show(false);
 
 		// Selection is required
@@ -209,11 +223,27 @@ public class AppController : MonoBehaviour {
 		VideoBrowser.instance.RefreshVideoList();
 	}
 
+	public void EnterVideoDetailsState(string videoProjectID)
+	{
+		viewState = UIViewState.VideoDetails;
+
+		VideoBrowser.instance.Show(false);
+		VideoDetails.instance.Show (true, videoProjectID);
+		VideoControls.instance.Show (false);
+
+		// Selection is required
+		App.ShowCrosshair = true;
+	}
+
+	/// <summary>
+	/// What's this for again? Go and find out
+	/// </summary>
 	public void EnterSelectedVideoState() 
 	{
 		viewState = UIViewState.SelectedVideo;
 
 		VideoBrowser.instance.Show(false);
+		VideoDetails.instance.Show (false);
 		VideoControls.instance.Show (false);
 
 		// Selection is required
@@ -233,6 +263,7 @@ public class AppController : MonoBehaviour {
 		}
 
 		VideoBrowser.instance.Show(false);
+		VideoDetails.instance.Show (false);
 		VideoControls.instance.Show(false);
 
 		//Initially no selection required
@@ -248,6 +279,7 @@ public class AppController : MonoBehaviour {
 		viewState = UIViewState.PausedVideo;
 
 		VideoBrowser.instance.Show (false);
+		VideoDetails.instance.Show (false);
 		VideoControls.instance.Show (true);
 
 		// Selection required

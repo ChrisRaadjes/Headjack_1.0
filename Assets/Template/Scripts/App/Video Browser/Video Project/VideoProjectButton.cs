@@ -65,9 +65,14 @@ public class VideoProjectButton : MonoBehaviour {
 	void Start ()
 	{
 		// Listeners
-		buttonPlay.onClick.AddListener(PlayVideoProject);
+		buttonPlay.onClick.AddListener(ShowVideoDetails);
 		buttonDownload.onClick.AddListener(DownloadVideoProject);
 		buttonPlay.onClick.AddListener(ClearConfirmPressed);
+	}
+
+	public void ShowVideoDetails()
+	{
+		AppController.instance.EnterVideoDetailsState(videoProjectId);
 	}
 
 	public void PlayVideoProject() 
