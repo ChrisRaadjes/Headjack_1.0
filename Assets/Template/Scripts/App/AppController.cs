@@ -62,8 +62,11 @@ public class AppController : MonoBehaviour {
 			return;
 		}
 
+		// Hide the app cursor - we're using our own
+		App.ShowCrosshair = false;
+
 		// Assign the UGUI Camera 
-		VRUIInputModule.instance.SetupUICamera ();
+		VRUIInputModule.instance.SetupUICamera();
 
 
 		// Enter the UI view. Also retrieve the project category data.
@@ -209,7 +212,7 @@ public class AppController : MonoBehaviour {
 		VideoControls.instance.Show(false);
 
 		// Selection is required
-		App.ShowCrosshair = true;
+		CustomCursor.instance.Show(true);
 
 		//We re-entered the video browser so we need to refresh the list (maybe not always?) 
 		VideoBrowser.instance.RefreshVideoList();
@@ -225,7 +228,7 @@ public class AppController : MonoBehaviour {
 		VideoControls.instance.Show (false);
 
 		// Selection is required
-		App.ShowCrosshair = true;
+		CustomCursor.instance.Show(true);
 	}
 
 	/// <summary>
@@ -240,7 +243,7 @@ public class AppController : MonoBehaviour {
 		VideoControls.instance.Show (false);
 
 		// Selection is required
-		App.ShowCrosshair = true;
+		CustomCursor.instance.Show(true);
 	}
 
 	public void EnterPlayingVideoState() 
@@ -263,6 +266,7 @@ public class AppController : MonoBehaviour {
 
 		//Initially no selection required
 		App.ShowCrosshair = false;
+		CustomCursor.instance.Show (false);
 
 	}
 
@@ -283,7 +287,7 @@ public class AppController : MonoBehaviour {
 		VideoControls.instance.Show (true);
 
 		// Selection required
-		App.ShowCrosshair = true;
+		CustomCursor.instance.Show (true);
 	}
 
 	#endregion

@@ -47,6 +47,14 @@ public class CustomCursor : MonoBehaviour {
 		cursorGazeProgressBar.material.SetFloat("_Progress", (VRUIInputModule.instance.gazeTimer / VRUIInputModule.instance.timerTime));
 	}
 
+	/// <summary>
+	/// Show or hide the custom cursor.
+	/// </summary>
+	public void Show(bool visibility)
+	{
+		gameObject.SetActive(visibility);
+	}
+		
 	void LateUpdate() 
 	{
 		transform.position = Vector3.SmoothDamp(transform.position, lastCameraPosition, ref cursorMovementVelocity, 0.025f);
