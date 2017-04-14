@@ -29,7 +29,6 @@ public class LocationBasedAnimation : MonoBehaviour {
 
 	void Start() 
 	{
-		
 		Debug.Log ("MAX axis: " + referenceRect.rect.max [axis]);
 		Debug.Log ("MIN region: " + referenceRect.rect.size[axis] * margin);
 	}

@@ -66,9 +66,9 @@ public class VideoDetails : MonoBehaviour {
 		if (downloadState == DownloadState.Downloading)
 		{
 			float videoProgress = App.GetProjectProgress (currentVideoProjectId);
-			float videoProgressPercentage = Mathf.Floor (videoProgress * 100f);
+			float videoProgressPercentage = Mathf.Floor (videoProgress);
 			textDownloadProgress.text = videoProgressPercentage.ToString() + "%";
-			downloadProgress.fillAmount = videoProgress;
+			downloadProgress.fillAmount = (videoProgress / 100f);
 		}
 	}
 
@@ -78,6 +78,7 @@ public class VideoDetails : MonoBehaviour {
 		{
 			currentVideoProjectId = videoProjectId;
 			SetProjectDetails(currentVideoProjectId);
+			UpdateDownloadState();
 		}
 
 		gameObject.SetActive(visibility);
@@ -88,6 +89,7 @@ public class VideoDetails : MonoBehaviour {
 	{
 		// Set visuals for the project thumbnail
 		// Does this set the main texture for this material? 
+		Debug.Log("Setting details for project " + currentVideoProjectId);
 		videoThumbnail.texture = App.GetImage(videoProjectId);
 
 		// Set the text for this project
@@ -99,8 +101,6 @@ public class VideoDetails : MonoBehaviour {
 	{
 		// I really fucking hate switch statements
 		// This needs to be seperated to different buttons maybe? 
-		UpdateDownloadState();
-
 		App.Download (currentVideoProjectId, true, delegate(bool success, string error) 
 		{
 			// Download is finished, update download button
@@ -113,6 +113,8 @@ public class VideoDetails : MonoBehaviour {
 				App.ShowMessage ("Download Failed:" + error, 5f);
 			}
 		});
+
+		UpdateDownloadState();
 	}
 
 	void UpdateDownloadState()
@@ -192,6 +194,7 @@ public class VideoDetails : MonoBehaviour {
 		if(App.GotFiles(currentVideoProjectId))
 		{
 			App.Delete(currentVideoProjectId);
+			downloadProgress.fillAmount = 0f;
 			UpdateDownloadState ();
 		}
 	}

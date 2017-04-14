@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using UnityEngine.Events;
+using TMPro;
 using Headjack;
 
 public class VRUIInputModule : BaseInputModule {
@@ -10,7 +13,6 @@ public class VRUIInputModule : BaseInputModule {
 	private static VRUIInputModule _instance = null;
 
 	// Storage class for controller specific data
-
 	public class ControllerData
 	{
 		public PointerEventData pointerEvent;
@@ -19,9 +21,15 @@ public class VRUIInputModule : BaseInputModule {
 		public GameObject currentDraggingObject;
 	};
 
+	[Header("Gaze Input Debug Info")]
+	[HideInInspector] public bool processGaze;  // When true, is consumed and processed click events for all buttons.
+	public float timerStartTime;
+	public float timerTime;
+	public TextMeshProUGUI textTimerStartProgress;
+	public TextMeshProUGUI textTimerProgress;
+
 	public ControllerData gazeControllerData = new ControllerData();
 	private Transform uiRaycastSource;
-
 
 	private Camera UICamera;
 	public float CameraRotationY
@@ -117,10 +125,8 @@ public class VRUIInputModule : BaseInputModule {
 	{
 		if (base.eventSystem.currentSelectedGameObject)
 		{
-			//Debug.Log ("Clearing currently selected object...");
 			var go = base.eventSystem.currentSelectedGameObject;
 			base.eventSystem.SetSelectedGameObject (null);
-			//Debug.Log ("Cleared selected object: " + go.name);
 		}
 	}
 		
@@ -137,12 +143,25 @@ public class VRUIInputModule : BaseInputModule {
 
 	float distance;
 	float _distanceLimit;
+	GameObject lastHitControl;
+	float gazeTimer;
 
 
 	public override void Process() 
 	{
+
+		Debug.Log ("Process Timer is " + processGaze);
+		
+		/*
+		//If we don't know the platform yet we should not be processing VRInput
+		if (App.CurrentPlatform == Headjack.App.VRPlatform.NotYetInitialized)
+		{
+			return;
+		}
+		*/
+			
 		// Test if UICamera is looking at a GUI element
-		UpdateCameraPosition ();
+		UpdateCameraPosition();
 
 		ControllerData controllerData = gazeControllerData;
 
@@ -163,49 +182,49 @@ public class VRUIInputModule : BaseInputModule {
 		controllerData.pointerEvent.pointerCurrentRaycast = FindFirstRaycast(m_RaycastResultCache);
 		m_RaycastResultCache.Clear ();
 
-		// Make sure our controllers knows about the raycasul result
-		// We add 0.01 because that is the near plane distance of our camera and we want the correct distance
-		if(controllerData.pointerEvent.pointerCurrentRaycast.distance > 0.0f) 
+		if(controllerData.pointerEvent.pointerCurrentRaycast.gameObject == null)
 		{
-			// controller.LimitLaserDistance(data.pointEvent.pointerCurrentRaycast.distance + 0.01f);
-		}
+			// Reset the gaze timer if we were using it
+			if (App.CurrentPlatform == App.VRPlatform.Cardboard)
+			{
+				gazeTimer = 0f;
+				processGaze = false;
+			}
 
-		// Stop if no UI element was hit
-		/*
-		if(data.pointerEvent.pointerCurrentRaycast.gameObject == null)
-		{
 			return;
 		}
-		*/
 
 		var hitControl = controllerData.pointerEvent.pointerCurrentRaycast.gameObject;
-		/*
-		// THIS ENTIRE SECTION IS NOT NEEDED
-		// Send control enter and exit events to our controller
-		if (data.currentPointObject != hitControl)
-		{
-			if (data.currentPointObject != null)
-			{
-				// controller onExitControl
-			}
-
-			if (hitControl != null)
-			{
-				// controller on enter control
-			}
-		}
-		*/
+		lastHitControl = hitControl;
 
 		controllerData.currentPointObject = hitControl;
 
 		// Handle enter and exit events on the GUI controls that are hit
 		base.HandlePointerExitAndEnter(controllerData.pointerEvent, controllerData.currentPointObject);
-
-		if (Input.GetKeyDown(KeyCode.Mouse0))
+	
+		if (App.CurrentPlatform == App.VRPlatform.Cardboard)
 		{
+			if (controllerData.currentPointObject == lastHitControl)
+			{
+				gazeTimer = gazeTimer + Time.deltaTime;
 
-			/// Start of button down. Need to handle this with the generic confirm button instead.
-			ClearSelection ();
+				if (gazeTimer >= timerTime)
+				{
+					processGaze = true;
+				}
+			}
+			else // Different control, reset gaze timer
+			{
+				gazeTimer = 0f;
+			}
+
+			textTimerProgress.text = gazeTimer;
+		}
+
+		if (Input.GetKeyDown(KeyCode.Mouse0) || Headjack.VRInput.Confirm.Pressed || processGaze)
+		{
+			/// Start of button down.
+			ClearSelection();
 
 			controllerData.pointerEvent.pressPosition = controllerData.pointerEvent.position;
 			controllerData.pointerEvent.pointerPressRaycast = controllerData.pointerEvent.pointerCurrentRaycast;
@@ -252,7 +271,8 @@ public class VRUIInputModule : BaseInputModule {
 		/// End of Button down
 
 		/// Start of button up
-		if (Input.GetKeyUp(KeyCode.Mouse0))
+		/// Add a timer was clicked
+		if (Input.GetKeyUp(KeyCode.Mouse0) || Headjack.VRInput.Confirm.Pressed || processGaze)
 		{
 			if(controllerData.currentDraggingObject != null)
 			{
@@ -290,7 +310,14 @@ public class VRUIInputModule : BaseInputModule {
 		{
 			ExecuteEvents.Execute (eventSystem.currentSelectedGameObject, GetBaseEventData (), ExecuteEvents.updateSelectedHandler);
 		}
+
+		// if we were using gaze processing make sure to set that off now
+		processGaze = false;
+		gazeTimer = 0f;
 	}
+
+	#region timer handling
+	#endregion
 
 	#region input save
 	[HideInInspector] public bool confirmPressed;

@@ -65,8 +65,9 @@ public class AppController : MonoBehaviour {
 		// Assign the UGUI Camera 
 		VRUIInputModule.instance.SetupUICamera ();
 
-		// Show the UI;
-		EnterBrowseVideoState(); 
+
+		// Enter the UI view. Also retrieve the project category data.
+		EnterBrowseVideoState();
 	}
 
 	public void SetQualitySettings() 
@@ -221,6 +222,7 @@ public class AppController : MonoBehaviour {
 
 		//We re-entered the video browser so we need to refresh the list (maybe not always?) 
 		VideoBrowser.instance.RefreshVideoList();
+		VideoBrowser.instance.GetProjectCategories();
 	}
 
 	public void EnterVideoDetailsState(string videoProjectID)
