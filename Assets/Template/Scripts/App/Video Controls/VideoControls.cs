@@ -108,9 +108,9 @@ public class VideoControls : MonoBehaviour {
 	public void SetPauseResumeIcon(bool isPlaying = true)
 	{
 		if (isPlaying)
-			buttonPauseResumeIcon.sprite = buttonIconPause;
-		else
 			buttonPauseResumeIcon.sprite = buttonIconPlay;
+		else
+			buttonPauseResumeIcon.sprite = buttonIconPause;
 	}
 
 	// Set seek doesn't work in this template

@@ -166,27 +166,18 @@ public class AppController : MonoBehaviour {
 		//The delay is to make sure the pause screen doesn't trigger on entry.
 		if(VRInput.Confirm.Pressed && delayInput < 1)
 		{
-			Debug.Log ("Showing pause UI");
-			EnterPausedVideoState();
+			EnterPausedVideoState(false);
 		}
 
-		// Check to see whether the video has reached the end of its duration.
-		// Rather than returning to the browser we want to give the player a chance
-		// to repeat playing a video.
+		if (VRInput.Back.Pressed && delayInput < 1 || Input.GetKeyDown (KeyCode.Mouse1))
+		{
+			EnterPausedVideoState (false);
+		}
 	}
 
 	public void UpdateInputPauseVideo() 
 	{
-		//Pressing confirm opens the video controls without pausing it.
-		//Pressing back opens the video controls with it paused. 
-		//Pressing back again removes the current view. 
-		//All this code should be moved into the UpdateInputPlayingVideo state.
-
-		//if (VRInput.Confirm.Pressed || Input.GetMouseButtonDown(2))
-		if(Input.GetKey(KeyCode.C))
-		{
-			EnterPlayingVideoState();
-		}
+		//Pressing back again should bring us to BrowseVideoPLayer. 
 
 		if (VRInput.Back.Pressed) 
 		{
@@ -259,10 +250,12 @@ public class AppController : MonoBehaviour {
 
 		viewState = UIViewState.PlayingVideo;
 	
+		/*
 		if (App.Player)
 		{
 			App.Player.Resume ();
 		}
+		*/
 
 		VideoBrowser.instance.Show(false);
 		VideoDetails.instance.Show (false);
@@ -273,10 +266,15 @@ public class AppController : MonoBehaviour {
 
 	}
 
-	public void EnterPausedVideoState() 
+	public void EnterPausedVideoState(bool pause = false) 
 	{
 		//Pause the video if it is playing
-		App.Player.Pause();
+		if (pause)
+		{
+			App.Player.Pause ();
+		}
+
+		VideoControls.instance.SetPauseResumeIcon(App.Player.IsPlaying);
 
 		viewState = UIViewState.PausedVideo;
 
