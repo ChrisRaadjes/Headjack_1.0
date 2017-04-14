@@ -72,15 +72,17 @@ public class VideoControls : MonoBehaviour {
 			videoProgressBar.value = App.Player.Seek;
 		}
 
+		/*
 		// Write the timespan values
 		TimeSpan currentTime = TimeSpan.FromMilliseconds(VideoTimeUtility.ConvertTimeToMSFromPercentage(App.Player.Duration, App.Player.Seek));
 		TimeSpan remainingTime = TimeSpan.FromMilliseconds(VideoTimeUtility.ConvertTimeToMs((App.Player.Duration - App.Player.SeekMs)));
 		
-		VideoTimeUtility.WriteVideoTime (textCurrentTime, currentTime);
-		VideoTimeUtility.WriteVideoTime (textRemainingTime, remainingTime);
+		VideoTimeUtility.WriteVideoTime(textCurrentTime, currentTime);
+		VideoTimeUtility.WriteVideoTime(textRemainingTime, remainingTime);
+		*/
 	}
 
-	public void Show(bool visibility = true) 
+	public void Show(bool visibility)
 	{
 		//Null-check to prevent this from being called at the start
 		if (origin != null)
@@ -98,7 +100,6 @@ public class VideoControls : MonoBehaviour {
 
 	public void PauseResumeVideo() 
 	{
-		Debug.Log ("App player object is " + App.Player.transform.name);
 		App.Player.PauseResume();
 		AppController.instance.EnterPlayingVideoState();
 		SetPauseResumeIcon(App.Player.IsPlaying);
@@ -147,11 +148,15 @@ public class VideoControls : MonoBehaviour {
 
 	public void BackToVideoBrowser() 
 	{
+		App.DestroyVideoPlayer ();
+
 		// Check to see if we're playing and if so destroy it before continuing
+		/*
 		if (App.Player.IsPlaying)
 		{
 			App.DestroyVideoPlayer ();
 		}
+		*/
 
 		AppController.instance.EnterBrowseVideoState();
 	}

@@ -62,8 +62,11 @@ public class CustomCursor : MonoBehaviour {
 			cursorTrail.gameObject.SetActive (false);
 		}
 
+		// Debug for cursor data
+		/*
 		Debug.Log ("Cursor Magnitude is " + cursorMovementVelocity.magnitude);
 		Debug.Log ("Cursor Trail Alpha is " + cursorTrail.material.color.a);
+		*/
 	}
 
 	// If we want to use this; need to write a vertex colour shader instead! 
