@@ -294,6 +294,10 @@ public class VRUIInputModule : BaseInputModule {
 					controllerData.pointerEvent.pointerPress = null;
 					controllerData.currentPressedObject = null;
 			}
+
+			// Since we've handled button up, it's save to reset the gaze timer and boolean if we used it
+			processGaze = false;
+			gazeTimer = 0f;
 		}
 
 		///
@@ -310,10 +314,6 @@ public class VRUIInputModule : BaseInputModule {
 		{
 			ExecuteEvents.Execute (eventSystem.currentSelectedGameObject, GetBaseEventData (), ExecuteEvents.updateSelectedHandler);
 		}
-
-		// if we were using gaze processing make sure to set that off now
-		processGaze = false;
-		gazeTimer = 0f;
 	}
 
 	#region timer handling
