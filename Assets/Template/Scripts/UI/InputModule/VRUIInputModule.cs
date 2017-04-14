@@ -144,22 +144,21 @@ public class VRUIInputModule : BaseInputModule {
 	float distance;
 	float _distanceLimit;
 	GameObject lastHitControl;
-	float gazeTimer;
+	public float gazeTimer;
+	float gazeProgress;
 
 
 	public override void Process() 
 	{
 
 		Debug.Log ("Process Timer is " + processGaze);
-		
-		/*
+
 		//If we don't know the platform yet we should not be processing VRInput
 		if (App.CurrentPlatform == Headjack.App.VRPlatform.NotYetInitialized)
 		{
 			return;
 		}
-		*/
-			
+
 		// Test if UICamera is looking at a GUI element
 		UpdateCameraPosition();
 
@@ -211,6 +210,7 @@ public class VRUIInputModule : BaseInputModule {
 				if (gazeTimer >= timerTime)
 				{
 					processGaze = true;
+					gazeProgress = (gazeTimer / timerTime);
 				}
 			}
 			else // Different control, reset gaze timer
