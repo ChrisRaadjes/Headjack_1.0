@@ -218,7 +218,7 @@ public class VRUIInputModule : BaseInputModule {
 				gazeTimer = 0f;
 			}
 
-			textTimerProgress.text = gazeTimer;
+			textTimerProgress.text = gazeTimer.ToString();
 		}
 
 		if (Input.GetKeyDown(KeyCode.Mouse0) || Headjack.VRInput.Confirm.Pressed || processGaze)
