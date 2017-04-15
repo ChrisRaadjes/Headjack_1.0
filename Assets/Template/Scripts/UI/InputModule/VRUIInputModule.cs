@@ -217,8 +217,6 @@ public class VRUIInputModule : BaseInputModule {
 			{
 				gazeTimer = 0f;
 			}
-
-			textTimerProgress.text = gazeTimer.ToString();
 		}
 
 		if (Input.GetKeyDown(KeyCode.Mouse0) || Headjack.VRInput.Confirm.Pressed || processGaze)
@@ -271,7 +269,6 @@ public class VRUIInputModule : BaseInputModule {
 		/// End of Button down
 
 		/// Start of button up
-		/// Add a timer was clicked
 		if (Input.GetKeyUp(KeyCode.Mouse0) || Headjack.VRInput.Confirm.Pressed || processGaze)
 		{
 			if(controllerData.currentDraggingObject != null)
@@ -294,7 +291,6 @@ public class VRUIInputModule : BaseInputModule {
 					controllerData.pointerEvent.pointerPress = null;
 					controllerData.currentPressedObject = null;
 			}
-
 			// Since we've handled button up, it's save to reset the gaze timer and boolean if we used it
 			processGaze = false;
 			gazeTimer = 0f;

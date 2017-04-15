@@ -45,7 +45,7 @@ public class VideoControls : MonoBehaviour {
 	[Header("Volume Button")]
 	public Slider volumeSlider;
 	public ExtendedInputHandler volumeSliderInput;
-	public Toggle toggleMuteVolume;
+	public Button buttonMuteVolume;
 	public Image iconMuteVolume;
 	public Sprite iconVolumeUnmuted;
 	public Sprite iconVolumeMuted;
@@ -66,7 +66,7 @@ public class VideoControls : MonoBehaviour {
 
 		ShowReplayButton(false);
 
-
+		buttonMuteVolume.onClick.AddListener(MuteVolume);
 		//toggleMuteVolume.onValueChanged.AddListener(mute => MuteVolume(mute));
 
 		//These are tests to be activated in the 2.0 template
@@ -183,12 +183,13 @@ public class VideoControls : MonoBehaviour {
 		
 	#region volume controls
 	float previousVolume;
-	public void MuteVolume(bool mute) 
+	public void MuteVolume()
 	{
 		previousVolume = App.Player.Volume;
-		App.Player.Mute = mute;
 
-		if (App.Player.Mute)
+		App.Player.Mute = !App.Player.Mute;
+
+		if(App.Player.Mute)
 		{
 			App.Player.Volume = 0f;
 		}
@@ -204,19 +205,18 @@ public class VideoControls : MonoBehaviour {
 	{
 		if (volume == 0f)
 		{
-			MuteVolume (true);
+			MuteVolume ();
 		}
 		else
 		{
+			App.Player.Volume = volume;
 			SetVolumeIcon ();
 		}
-
-		App.Player.Volume = volume;
 	}
 
 	public void SetVolumeIcon() 
 	{
-		if (App.Player.Volume == 0f)
+		if (App.Player.Volume == 0f || App.Player.Mute)
 		{
 			iconMuteVolume.sprite = iconVolumeMuted;
 		}

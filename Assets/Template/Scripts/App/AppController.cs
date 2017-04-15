@@ -71,6 +71,10 @@ public class AppController : MonoBehaviour {
 		//Retrieve the video categories
 		VideoBrowser.instance.GetProjectCategories();
 
+		//Setup the object pool of video projects
+		VideoBrowser.instance.SetupObjectPool();
+
+
 		// Enter the UI view. Also retrieve the project category data.
 		EnterBrowseVideoState();
 	}

@@ -14,17 +14,21 @@ public class VideoBrowser : MonoBehaviour {
 	public CanvasGroup canvasGroup;
 
 	[Header("Video Categories")]
-	public ToggleGroup categoriesToggleGroup;
-	public int displayedCategories;
-	public Transform categoryList;
+	public GameObject categoryParent;
+	public Transform categoryTemplateParent;
 	public GameObject categoryTemplate;
-	public Toggle toggleCategoryAll;
+	public Button buttonCategoryAll;
 	public ExtendedInputHandler inputCategoryAll;
-	public Button buttonOpenCategoryList;
+	public List<VideoCategoryToggle> categoriesList = new List<VideoCategoryToggle>();
 
 	[Header("Video Projects")]
 	public Transform videoProjectlist; 
 	public GameObject videoProjectTemplate;
+
+	[Header("Video Project Pooler")]
+
+	public int initialPooledAmount = 20;
+	public List<VideoProjectButton> videoProjectPool = new List<VideoProjectButton>();
 
 	void Awake () 
 	{
@@ -34,9 +38,9 @@ public class VideoBrowser : MonoBehaviour {
 	void Start()
 	{
 		// Set listeners for toggles
-		toggleCategoryAll.onValueChanged.AddListener(refresh => RefreshCategoryAll(refresh));
+		//toggleCategoryAll.onValueChanged.AddListener(refresh => RefreshCategoryAll(refresh));
 	}
-	
+
 	public void Show(bool visibility = true)
 	{
 		//Null-check to prevent this from being called at the start
@@ -64,15 +68,39 @@ public class VideoBrowser : MonoBehaviour {
 	{
 		string[] videoProjects = null;
 
-		if (refreshCategoryID == null)
+		if (refreshCategoryID == null || refreshCategoryID == "All")
 		{
 			videoProjects = App.GetProjects ();
 		}
 		else
 		{
-			videoProjects = App.GetProjects(refreshCategoryID = refreshCategoryID);
+			// Link this to the pooler
+			videoProjects = App.GetProjects(refreshCategoryID);
 		}
 
+		//Iterate over every category and set visuals NB: this is because toggles don't work for some reason in VRUIInputModule
+		if (refreshCategoryID == "All")
+		{
+			foreach (VideoCategoryToggle category in categoriesList)
+			{
+				category.SetVisuals (refreshCategoryID);
+			}
+		}
+		else
+		{
+			foreach (VideoCategoryToggle category in categoriesList)
+			{
+				category.SetVisuals (refreshCategoryID);
+			}
+		}
+			
+		// We know we need to hide all objects in the list 
+		foreach (VideoProjectButton video in videoProjectPool)
+		{
+			video.gameObject.SetActive(false);
+		}
+
+		// Then use the pooled method to set new information for our category
 		foreach (string videoProjectID in videoProjects)
 		{
 			AddVideoProject(videoProjectID);
@@ -83,6 +111,7 @@ public class VideoBrowser : MonoBehaviour {
 	// Minor issue, doesn't seem to cause a performance problem? 
 	// Reasses when adding categories.
 
+	/*
 	public void AddVideoProject(string newProjectID) 
 	{
 		GameObject currentVideoProjectTemplate; // Why did I declare this like this?
@@ -91,6 +120,35 @@ public class VideoBrowser : MonoBehaviour {
 		currentVideoProjectTemplate.gameObject.SetActive (true);
 		currentVideoProjectTemplate.GetComponent<VideoProjectButton>().SetProjectId (newProjectID);
 	}
+	*/
+
+	public void SetupObjectPool() 
+	{
+		string[] videos = App.GetProjects ();
+		int allVideos = videos.Length;
+
+		for (int i = 0; i < allVideos; i++)
+		{
+			var videoProject = Instantiate(videoProjectTemplate, videoProjectlist, false);
+			videoProject.gameObject.SetActive (false);
+			videoProjectPool.Add(videoProject.GetComponent<VideoProjectButton>());
+		}
+	}
+
+	/// <summary>
+	/// Find an inactive video project and set the information for it
+	/// </summary>
+	public void AddVideoProject(string newProjectID)
+	{
+		for (int i = 0; i < videoProjectPool.Count; i++)
+		{
+			if (!videoProjectPool [i].gameObject.activeInHierarchy)
+			{
+				videoProjectPool[i].gameObject.SetActive(true);
+				videoProjectPool [i].SetProjectId(newProjectID);
+			}
+		}
+	}
 
 	#region categories
 	public void GetProjectCategories()
@@ -98,25 +156,20 @@ public class VideoBrowser : MonoBehaviour {
 		string[] categories = null;
 		categories = App.GetCategories();
 
-		/*
+
 		//Check whether we have any categories at all 
 		if (categories.Length == 0)
 		{
-			// Hide the category bar
-		}
-		else
-		if (categories.Length > 1 && categories.Length <= 5)
-		{
-			//Show the category bar, but hide the more categories button
+			categoryParent.SetActive (false);
 		}
 		else
 		{
-			// Show the category bar & the more categories buttons
+			categoryParent.SetActive (true);
 		}
-		*/
-		
-	
-		// We limit the amount of categories we display in the mainbar to 5
+
+		// Add one category which will show all videos.
+		AddCategory("All");
+
 		foreach (string categoryID in categories)
 		{
 			AddCategory(categoryID);
@@ -125,9 +178,16 @@ public class VideoBrowser : MonoBehaviour {
 
 	public void AddCategory(string newCategoryID)
 	{
-		GameObject currentCategoryTemplate = (GameObject)Instantiate (categoryTemplate, categoryList, false);
+		GameObject currentCategoryTemplate = (GameObject)Instantiate (categoryTemplate, categoryTemplateParent, false);
 		currentCategoryTemplate.gameObject.SetActive (true);
-		currentCategoryTemplate.GetComponent<VideoCategoryToggle> ().Setup(newCategoryID);
+
+		var videoCategoryTemplate = currentCategoryTemplate.GetComponent<VideoCategoryToggle>();
+		categoriesList.Add(videoCategoryTemplate);
+		videoCategoryTemplate.Setup (newCategoryID);
 	}
+
+
+
+
 	#endregion
 }
