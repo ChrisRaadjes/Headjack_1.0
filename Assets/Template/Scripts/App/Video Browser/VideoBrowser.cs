@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UI.Extensions;
 using Headjack;
 
 public class VideoBrowser : MonoBehaviour {
@@ -25,9 +26,14 @@ public class VideoBrowser : MonoBehaviour {
 	public Transform videoProjectlist; 
 	public GameObject videoProjectTemplate;
 
-	[Header("Video Project Pooler")]
+	[Header("Page Pooler")]
+	public List<GameObject> videoPagePool = new List<GameObject>();
 
+	[Header("Video Project Pooler")]
 	public int initialPooledAmount = 20;
+	public GameObject videoPageTemplate;
+	public int videosPerPage;
+	public HorizontalScrollSnap scrollSnap;
 	public List<VideoProjectButton> videoProjectPool = new List<VideoProjectButton>();
 
 	void Awake () 
@@ -79,20 +85,7 @@ public class VideoBrowser : MonoBehaviour {
 		}
 
 		//Iterate over every category and set visuals NB: this is because toggles don't work for some reason in VRUIInputModule
-		if (refreshCategoryID == "All")
-		{
-			foreach (VideoCategoryToggle category in categoriesList)
-			{
-				category.SetVisuals (refreshCategoryID);
-			}
-		}
-		else
-		{
-			foreach (VideoCategoryToggle category in categoriesList)
-			{
-				category.SetVisuals (refreshCategoryID);
-			}
-		}
+		SetCategoryVisuals(refreshCategoryID);
 			
 		// We know we need to hide all objects in the list 
 		foreach (VideoProjectButton video in videoProjectPool)
@@ -107,40 +100,72 @@ public class VideoBrowser : MonoBehaviour {
 		}
 	}
 
-	// Probably replace this with a pooler of some sort
-	// Minor issue, doesn't seem to cause a performance problem? 
-	// Reasses when adding categories.
-
-	/*
-	public void AddVideoProject(string newProjectID) 
+	public void SetCategoryVisuals(string refreshCategoryID) 
 	{
-		GameObject currentVideoProjectTemplate; // Why did I declare this like this?
-
-		currentVideoProjectTemplate = (GameObject)Instantiate (videoProjectTemplate, videoProjectlist, false);
-		currentVideoProjectTemplate.gameObject.SetActive (true);
-		currentVideoProjectTemplate.GetComponent<VideoProjectButton>().SetProjectId (newProjectID);
+		if (refreshCategoryID == "All")
+		{
+			foreach (VideoCategoryToggle category in categoriesList)
+			{
+				category.SetVisuals (refreshCategoryID);
+			}
+		}
+		else
+		{
+			foreach (VideoCategoryToggle category in categoriesList)
+			{
+				category.SetVisuals (refreshCategoryID);
+			}
+		}
 	}
-	*/
 
 	public void SetupObjectPool() 
 	{
 		string[] videos = App.GetProjects ();
 		int allVideos = videos.Length;
+		int totalVideos = videos.Length + 1;
+
+		int requiredPages = Mathf.CeilToInt((float)totalVideos / (float)videosPerPage);
+		Debug.Log ("Required Pages is " + requiredPages);
+
+		// Let's first setup the required pages
+		for (int p = 0; p < requiredPages; p++)
+		{
+			var page = Instantiate(videoPageTemplate, transform, false);
+			scrollSnap.AddChild (page, false);
+			page.SetActive (true);
+			videoPagePool.Add (page);
+		}
+
+	 	// Now it's time to instantiate our videos
+		int videosHandled = 0;
+		int currentPage = 0;
 
 		for (int i = 0; i < allVideos; i++)
 		{
-			var videoProject = Instantiate(videoProjectTemplate, videoProjectlist, false);
+			// Everytime we enter, check to see if our last page is full.
+			if (videosHandled == videosPerPage)
+			{
+				videosHandled = 0;
+				currentPage++;
+			}
+
+			//Instantiate the current video under a given page starting at 0;
+			var videoProject = Instantiate(videoProjectTemplate, videoPagePool[currentPage].transform, false);
 			videoProject.gameObject.SetActive (false);
 			videoProjectPool.Add(videoProject.GetComponent<VideoProjectButton>());
+
+			// Increment the amount of videos we've put in the current page
+			videosHandled++;
 		}
 	}
 
 	/// <summary>
-	/// Find an inactive video project and set the information for it
+	/// Find an inactive page & video project and set the information for it
 	/// </summary>
 	public void AddVideoProject(string newProjectID)
 	{
-		for (int i = 0; i < videoProjectPool.Count; i++)
+		// Set the video projects inside that page
+		for(int i = 0; i < videoProjectPool.Count; i++)
 		{
 			if (!videoProjectPool [i].gameObject.activeInHierarchy)
 			{
@@ -149,6 +174,8 @@ public class VideoBrowser : MonoBehaviour {
 			}
 		}
 	}
+
+
 
 	#region categories
 	public void GetProjectCategories()
@@ -174,6 +201,8 @@ public class VideoBrowser : MonoBehaviour {
 		{
 			AddCategory(categoryID);
 		}
+
+		SetCategoryVisuals("All");
 	}
 
 	public void AddCategory(string newCategoryID)

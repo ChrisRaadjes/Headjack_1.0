@@ -27,8 +27,6 @@ public class AppController : MonoBehaviour {
 	public string lastProjectID;
 	public bool lastProjectStreamed;
 
-
-
 	// Use this for initialization
 	void Start () 
 	{

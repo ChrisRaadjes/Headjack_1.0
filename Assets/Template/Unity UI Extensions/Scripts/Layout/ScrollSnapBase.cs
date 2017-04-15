@@ -422,15 +422,12 @@ namespace UnityEngine.UI.Extensions
 
 		public void OnScrollBarDown()
 		{
-			_pointerDown = true;
-			_startPosition = _screensContainer.localPosition;
 			_lerp = false;
 		}
 
 		public void OnScrollBarUp()
 		{
-			ScrollToClosestElement();
-			_lerp = true;
+			ScrollToClosestElement ();
 		}
 
         #endregion
