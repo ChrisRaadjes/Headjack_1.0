@@ -11,6 +11,7 @@ using Headjack;
 public class VideoControls : MonoBehaviour {
 
 	public static VideoControls instance;
+	public CanvasGroup canvasGroup;
 
 	public RotationNode origin;
 
@@ -66,7 +67,7 @@ public class VideoControls : MonoBehaviour {
 		ShowReplayButton(false);
 
 
-		toggleMuteVolume.onValueChanged.AddListener(mute => MuteVolume (mute));
+		//toggleMuteVolume.onValueChanged.AddListener(mute => MuteVolume(mute));
 
 		//These are tests to be activated in the 2.0 template
 		/*
@@ -106,6 +107,8 @@ public class VideoControls : MonoBehaviour {
 		{
 			textVideoTitle.text = App.GetProjectMetadata(videoProjectId).Title;
 		}
+
+		canvasGroup.interactable = visibility;
 		
 		gameObject.SetActive (visibility);
 		animator.SetBool ("Show", visibility);	
@@ -213,7 +216,7 @@ public class VideoControls : MonoBehaviour {
 
 	public void SetVolumeIcon() 
 	{
-		if (App.Player.Mute)
+		if (App.Player.Volume == 0f)
 		{
 			iconMuteVolume.sprite = iconVolumeMuted;
 		}

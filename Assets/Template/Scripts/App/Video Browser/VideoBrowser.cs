@@ -11,6 +11,7 @@ public class VideoBrowser : MonoBehaviour {
 	public RotationNode origin;
 
 	public Animator animator;
+	public CanvasGroup canvasGroup;
 
 	[Header("Video Categories")]
 	public ToggleGroup categoriesToggleGroup;
@@ -43,6 +44,8 @@ public class VideoBrowser : MonoBehaviour {
 		{
 			origin.LookRotation = VRUIInputModule.instance.CameraRotationY;
 		}
+
+		canvasGroup.interactable = visibility;
 
 		gameObject.SetActive(visibility);
 		animator.SetBool("Show", visibility);

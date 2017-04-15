@@ -10,6 +10,7 @@ public class VideoDetails : MonoBehaviour {
 	public static VideoDetails instance;
 
 	public Animator animator;
+	public CanvasGroup canvasGroup;
 
 	[Header("Video Project ID")]
 	[HideInInspector] public string currentVideoProjectId;
@@ -81,8 +82,12 @@ public class VideoDetails : MonoBehaviour {
 			UpdateDownloadState();
 		}
 
+		canvasGroup.interactable = visibility;
+
 		gameObject.SetActive(visibility);
 		animator.SetBool("Show", visibility);
+
+
 	}
 
 	public void SetProjectDetails(string videoProjectId)
@@ -179,8 +184,7 @@ public class VideoDetails : MonoBehaviour {
 			return;
 		}
 	}
-
-
+		
 	void CancelDownload()
 	{
 		if(App.ProjectIsDownloading(currentVideoProjectId))
