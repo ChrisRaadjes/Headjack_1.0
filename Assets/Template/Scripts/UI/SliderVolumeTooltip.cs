@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 using Headjack;
 using TMPro;
 
-public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+public class SliderVolumeTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
 {
 	// This class allows us to extend functionality of selectables
 	// without completely overriding existing functionality. 
@@ -51,8 +51,9 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 
 	[Header("Show Tooltip On Hover")]
 	private bool showSliderTooltip;
-
 	private Vector2 offset;
+
+	private float newVolume;
 
 	public int Axis
 	{
@@ -66,6 +67,10 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 
 	void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
 	{
+
+		VideoControls.instance.SetVolume (newVolume);
+		Debug.Log ("Setting Volume at " + newVolume);
+		
 		onClick.Invoke();
 	}
 
@@ -131,14 +136,6 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 	{
 		if (showSliderTooltip)
 			UpdateSliderTooltip (VRUIInputModule.instance.gazeControllerData.pointerEvent);
-
-		/*
-		if (showSliderTooltip) 
-		{
-			PointerEventData eventData = EventSystem.current.gameObject.GetComponent<StandaloneInputModuleCustom> ().GetLastPointerEventDataPublic (-1);
-		}
-		*/
-
 	}
 
 	public void ShowSliderTooltip(bool visibility) 
@@ -154,7 +151,7 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 
 	void IPointerDownHandler.OnPointerDown(PointerEventData eventData)
 	{
-		Debug.Log ("Pointer is down");
+		//Debug.Log ("Pointer is down");
 		offset = Vector2.zero;
 	}
 
@@ -184,45 +181,8 @@ public class SliderTooltip : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 			DrivePreviewImages(gazeNormalizedValue);
 		}
 
-		// Show the timespan of the video on preview.
-		TimeSpan videoTimespan = TimeSpan.FromMilliseconds (ConvertDurationToMS (App.Player.Duration, gazeNormalizedValue));
-		WriteVideoTime(videoTimespan);
-	}
-		
-	/// <summary>
-	/// Takes a double and converts it to a rounded milisecond time to use as a video timespan. 
-	/// This function is called once per play of a video.
-	/// </summary>
-	public long ConvertDurationToMS(long duration, float percentage)
-	{
-		double durationDouble = (double)duration;
-		double gazePointTime = durationDouble * ((double)percentage);
-		return (long)gazePointTime;
-	}
-
-	/// <summary>
-	/// Writes out the video time string;
-	/// Should only be called once per video play.
-	/// </summary>
-	public void WriteVideoTime(TimeSpan videoTimespan)
-	{
-		string format = null;
-
-		if (videoTimespan.Hours > 0) 
-		{
-			sliderTooltipText.text = string.Format ("{0:00}:{1:00}:{2:00}", videoTimespan.Hours, videoTimespan.Minutes, videoTimespan.Seconds);
-		} 
-		else 
-		{
-			if (videoTimespan.Minutes < 10) 
-			{
-				sliderTooltipText.text = string.Format("{0}:{1:00}", videoTimespan.Minutes, videoTimespan.Seconds);
-			} 
-			else 
-			{
-				sliderTooltipText.text = string.Format ("{0:00}:{1:00}", videoTimespan.Minutes, videoTimespan.Seconds);
-			}
-		}
+		newVolume = gazeNormalizedValue;
+		sliderTooltipText.text = (Mathf.Floor(gazeNormalizedValue * 100f)).ToString();
 	}
 
 	public void DrivePreviewImages(float gazeNormalizedValue) 

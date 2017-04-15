@@ -18,6 +18,10 @@ public class VideoControls : MonoBehaviour {
 
 	[Header("Video Control Interactables")]
 
+	[Header("Video Info")]
+	[HideInInspector] public string currentVideoProjectId;
+	public TextMeshProUGUI textVideoTitle;
+
 	[Header("Pause Resume Button")]
 	public Button buttonPauseResume;
 	public Image buttonPauseResumeIcon;
@@ -37,7 +41,15 @@ public class VideoControls : MonoBehaviour {
 	public TextMeshProUGUI textCurrentTime;
 	public TextMeshProUGUI textRemainingTime;
 
-	[Header("Other Controls")]
+	[Header("Volume Button")]
+	public Slider volumeSlider;
+	public ExtendedInputHandler volumeSliderInput;
+	public Toggle toggleMuteVolume;
+	public Image iconMuteVolume;
+	public Sprite iconVolumeUnmuted;
+	public Sprite iconVolumeMuted;
+
+	[Header("Debug Controls")]
 	public Button buttonRewind;
 	public Button buttonForward;
 
@@ -53,9 +65,8 @@ public class VideoControls : MonoBehaviour {
 
 		ShowReplayButton(false);
 
-		// We use our custom input handler for the slider
-		// because we don't want to be calling SeekMS every frame.
-		videoProgressBarInput.onClick.AddListener(SeekVideoTime);
+
+		toggleMuteVolume.onValueChanged.AddListener(mute => MuteVolume (mute));
 
 		//These are tests to be activated in the 2.0 template
 		/*
@@ -64,14 +75,16 @@ public class VideoControls : MonoBehaviour {
 		*/
 
 	}
-
+		
 	void Update () 
 	{
-		if (setSeek)  // Set seek is set by SliderInputHandler events, and immediatley consumed. 
+		if (setSeek)  // Set seek is set by SliderInputHandler events, and immediatley consumed. So we only update if it's off.
 		{
 			videoProgressBar.value = App.Player.Seek;
 		}
 
+		volumeSlider.value = App.Player.Volume;
+		Debug.Log ("Volume of player is at " + App.Player.Volume);
 
 		// Write the timespan values
 		TimeSpan currentTime = TimeSpan.FromMilliseconds(VideoTimeUtility.ConvertTimeToMSFromPercentage(App.Player.Duration, App.Player.Seek));
@@ -81,12 +94,17 @@ public class VideoControls : MonoBehaviour {
 		VideoTimeUtility.WriteVideoTime(textRemainingTime, remainingTime);
 	}
 
-	public void Show(bool visibility)
+	public void Show(bool visibility, string videoProjectId = null)
 	{
 		//Null-check to prevent this from being called at the start
 		if (origin != null)
 		{
 			origin.LookRotation = VRUIInputModule.instance.CameraRotationY;
+		}
+
+		if (videoProjectId != null)
+		{
+			textVideoTitle.text = App.GetProjectMetadata(videoProjectId).Title;
 		}
 		
 		gameObject.SetActive (visibility);
@@ -100,7 +118,8 @@ public class VideoControls : MonoBehaviour {
 	public void PauseResumeVideo() 
 	{
 		App.Player.PauseResume();
-		//AppController.instance.EnterPlayingVideoState();
+		//AppController.instance.EnterPlayingVideoState()
+
 		SetPauseResumeIcon(App.Player.IsPlaying);
 	}
 
@@ -113,15 +132,14 @@ public class VideoControls : MonoBehaviour {
 	}
 
 	// Set seek doesn't work in this template
-	public void SeekVideoTime()
+	public void SeekVideoTime(float seekTime)
 	{
 		//Setting seek, so flip bool to make sure Update() doesn't change slider value
 		setSeek = false;
 
-		Debug.Log("Slider progress is " + videoProgressBar.value);
-		Debug.Log ("Attempting to seek");
-
-		App.Player.Seek = videoProgressBar.value;
+		App.Player.Pause();
+		App.Player.Seek = seekTime;
+		App.Player.Resume();
 
 		// Consume the set seek
 		setSeek = true; 
@@ -159,7 +177,54 @@ public class VideoControls : MonoBehaviour {
 
 		AppController.instance.EnterBrowseVideoState();
 	}
+		
+	#region volume controls
+	float previousVolume;
+	public void MuteVolume(bool mute) 
+	{
+		previousVolume = App.Player.Volume;
+		App.Player.Mute = mute;
 
+		if (App.Player.Mute)
+		{
+			App.Player.Volume = 0f;
+		}
+		else
+		{
+			App.Player.Volume = previousVolume;
+		}
+
+		SetVolumeIcon();
+	}
+
+	public void SetVolume(float volume)
+	{
+		if (volume == 0f)
+		{
+			MuteVolume (true);
+		}
+		else
+		{
+			SetVolumeIcon ();
+		}
+
+		App.Player.Volume = volume;
+	}
+
+	public void SetVolumeIcon() 
+	{
+		if (App.Player.Mute)
+		{
+			iconMuteVolume.sprite = iconVolumeMuted;
+		}
+		else
+		{
+			iconMuteVolume.sprite = iconVolumeUnmuted;
+		}
+	}
+	#endregion
+
+	#region replay functionality
 	private bool showReplayButton;
 	public void ShowReplayButton(bool show) 
 	{
@@ -189,4 +254,5 @@ public class VideoControls : MonoBehaviour {
 
 		//Swap out the replay button for the pause resume button
 	}
+	#endregion
 }

@@ -252,20 +252,12 @@ public class AppController : MonoBehaviour {
 		delayInput = 25;
 
 		viewState = UIViewState.PlayingVideo;
-	
-		/*
-		if (App.Player)
-		{
-			App.Player.Resume ();
-		}
-		*/
 
 		VideoBrowser.instance.Show(false);
 		VideoDetails.instance.Show (false);
 		VideoControls.instance.Show(false);
 
 		//Initially no selection required
-		App.ShowCrosshair = false;
 		CustomCursor.instance.Show (false);
 
 	}
@@ -273,7 +265,7 @@ public class AppController : MonoBehaviour {
 	public void EnterPausedVideoState(bool pause = false) 
 	{
 		//Pause the video if it is playing
-		if (pause)
+		if(pause)
 		{
 			App.Player.Pause ();
 		}

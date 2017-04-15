@@ -209,12 +209,13 @@ public class VideoDetails : MonoBehaviour {
 		{
 			AppController.instance.Play (currentVideoProjectId, true); // Play using stream
 		}
+
+		// Give the details of the currently playing video to the video controls.
+		VideoControls.instance.currentVideoProjectId = currentVideoProjectId;
 	}
 
 	void ReturnToBrowser()
 	{
 		AppController.instance.EnterBrowseVideoState();
 	}
-
-
 }

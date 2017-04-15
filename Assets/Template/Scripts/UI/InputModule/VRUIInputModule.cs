@@ -151,7 +151,7 @@ public class VRUIInputModule : BaseInputModule {
 	public override void Process() 
 	{
 
-		Debug.Log ("Process Timer is " + processGaze);
+		//Debug.Log ("Process Timer is " + processGaze);
 
 		//If we don't know the platform yet we should not be processing VRInput
 		if (App.CurrentPlatform == Headjack.App.VRPlatform.NotYetInitialized)
