@@ -72,7 +72,6 @@ public class AppController : MonoBehaviour {
 		//Setup the object pool of video projects
 		VideoBrowser.instance.SetupObjectPool();
 
-
 		// Enter the UI view. Also retrieve the project category data.
 		EnterBrowseVideoState();
 	}
@@ -133,7 +132,6 @@ public class AppController : MonoBehaviour {
 		else
 		if (viewState == UIViewState.VideoDetails)
 		{
-			UpdateInputSelectedVideo ();
 		}
 		else if (viewState == UIViewState.PlayingVideo) 
 		{
@@ -154,11 +152,6 @@ public class AppController : MonoBehaviour {
 	public void UpdateVideoDetails()
 	{
 		// Add universal input code for viewing project details
-	}
-
-	public void UpdateInputSelectedVideo()
-	{
-		// Add universal input code for selecting a video
 	}
 
 	int delayInput;
@@ -204,6 +197,9 @@ public class AppController : MonoBehaviour {
 		VideoBrowser.instance.Show (false);
 		VideoDetails.instance.Show (false);
 		VideoControls.instance.Show (false);
+
+		// Geometry
+		GeometryManager.instance.Show(false);
 	}
 
 	public void EnterBrowseVideoState() 
@@ -217,6 +213,9 @@ public class AppController : MonoBehaviour {
 
 		// Selection is required
 		CustomCursor.instance.Show(true);
+
+		// Geometry
+		GeometryManager.instance.Show(true);
 
 		//We re-entered the video browser so we need to refresh the list (maybe not always?) 
 		VideoBrowser.instance.RefreshVideoList();
@@ -232,21 +231,9 @@ public class AppController : MonoBehaviour {
 
 		// Selection is required
 		CustomCursor.instance.Show(true);
-	}
 
-	/// <summary>
-	/// What's this for again? Go and find out
-	/// </summary>
-	public void EnterSelectedVideoState() 
-	{
-		viewState = UIViewState.SelectedVideo;
-
-		VideoBrowser.instance.Show(false);
-		VideoDetails.instance.Show (false);
-		VideoControls.instance.Show (false);
-
-		// Selection is required
-		CustomCursor.instance.Show(true);
+		// Geometry
+		GeometryManager.instance.Show(true);
 	}
 
 	public void EnterPlayingVideoState() 
@@ -262,6 +249,9 @@ public class AppController : MonoBehaviour {
 
 		//Initially no selection required
 		CustomCursor.instance.Show (false);
+
+		// Geometry
+		GeometryManager.instance.Show(false);
 
 	}
 
@@ -283,6 +273,9 @@ public class AppController : MonoBehaviour {
 
 		// Selection required
 		CustomCursor.instance.Show (true);
+
+		// Geometry
+		GeometryManager.instance.Show(false);
 	}
 
 	#endregion

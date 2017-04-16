@@ -57,7 +57,7 @@ public class SliderVolumeTooltip : MonoBehaviour, IPointerClickHandler, IPointer
 
 	public int Axis
 	{
-		get { return (slider.direction == Slider.Direction.BottomToTop || slider.direction == Slider.Direction.TopToBottom) ? 1 : 0; }
+		get { return (slider.direction == Slider.Direction.LeftToRight || slider.direction == Slider.Direction.TopToBottom) ? 1 : 0; }
 	}
 
 	public bool ReverseValue
@@ -69,7 +69,7 @@ public class SliderVolumeTooltip : MonoBehaviour, IPointerClickHandler, IPointer
 	{
 
 		VideoControls.instance.SetVolume (newVolume);
-		Debug.Log ("Setting Volume at " + newVolume);
+		//Debug.Log ("Setting Volume at " + newVolume);
 		
 		onClick.Invoke();
 	}
@@ -79,8 +79,8 @@ public class SliderVolumeTooltip : MonoBehaviour, IPointerClickHandler, IPointer
 		if (gameObject == eventData.pointerEnter ||
 			IsGameObjectMatchInChildren (transform, eventData.pointerEnter))
 		{
-			showSliderTooltip = true;
-			ShowSliderTooltip (true);
+			//showSliderTooltip = true;
+			//ShowSliderTooltip (true);
 		}
 	}
 
@@ -89,8 +89,8 @@ public class SliderVolumeTooltip : MonoBehaviour, IPointerClickHandler, IPointer
 		if (gameObject == eventData.pointerEnter ||
 			IsGameObjectMatchInChildren (transform, eventData.pointerEnter))
 		{
-			showSliderTooltip = false;
-			ShowSliderTooltip(false);
+			//showSliderTooltip = false;
+			//ShowSliderTooltip(false);
 		}
 	}
 
@@ -113,23 +113,8 @@ public class SliderVolumeTooltip : MonoBehaviour, IPointerClickHandler, IPointer
 
 	public void Start()
 	{
-		// Set the anchored position of the slider tooltip to match the slider pivot itself
-		Vector2 newAnchorMin = sliderTooltip.anchorMin;
-		Vector2 newAnchorMax = sliderTooltip.anchorMax;
-
-		newAnchorMin[Axis] = sliderRect.pivot[Axis];
-		newAnchorMax[Axis] = sliderRect.pivot[Axis];
-
-		sliderTooltip.anchorMin = newAnchorMin;
-		sliderTooltip.anchorMax = newAnchorMax;
-
-		// Zero out the position on the correct axis of the slider tooltip;
-		Vector2 _tmp = sliderTooltip.anchoredPosition;
-		_tmp[Axis] = 0f; 
-		sliderTooltip.anchoredPosition = _tmp;
-
 		//Hide it 
-		ShowSliderTooltip(false);
+		//ShowSliderTooltip(false);
 	}
 
 	public void Update() 
@@ -140,6 +125,7 @@ public class SliderVolumeTooltip : MonoBehaviour, IPointerClickHandler, IPointer
 
 	public void ShowSliderTooltip(bool visibility) 
 	{
+		/*
 		sliderTooltip.gameObject.SetActive(visibility);
 
 		if (showPreview) 
@@ -147,6 +133,7 @@ public class SliderVolumeTooltip : MonoBehaviour, IPointerClickHandler, IPointer
 			sliderFillPreview.gameObject.SetActive (visibility);
 			sliderHandlePreview.gameObject.SetActive (visibility);
 		}
+		*/
 	}
 
 	void IPointerDownHandler.OnPointerDown(PointerEventData eventData)
@@ -163,12 +150,7 @@ public class SliderVolumeTooltip : MonoBehaviour, IPointerClickHandler, IPointer
 		if (!RectTransformUtility.ScreenPointToLocalPointInRectangle (sliderRect, eventData.position, eventData.enterEventCamera, out localCursorPoint)) {
 			return;
 		}
-
-		// Adjust the tooltip location
-		Vector2 _tmp = sliderTooltip.anchoredPosition;
-		_tmp.x = localCursorPoint.x;
-		sliderTooltip.anchoredPosition = _tmp;
-
+			
 		// Get the normalized position of where we are looking
 		localCursorPoint -= sliderRect.rect.position;
 

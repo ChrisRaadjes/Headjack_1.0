@@ -85,7 +85,7 @@ public class VideoControls : MonoBehaviour {
 		}
 
 		volumeSlider.value = App.Player.Volume;
-		Debug.Log ("Volume of player is at " + App.Player.Volume);
+		//Debug.Log ("Volume of player is at " + App.Player.Volume);
 
 		// Write the timespan values
 		TimeSpan currentTime = TimeSpan.FromMilliseconds(VideoTimeUtility.ConvertTimeToMSFromPercentage(App.Player.Duration, App.Player.Seek));
@@ -121,17 +121,17 @@ public class VideoControls : MonoBehaviour {
 	public void PauseResumeVideo() 
 	{
 		App.Player.PauseResume();
-		//AppController.instance.EnterPlayingVideoState()
+		AppController.instance.EnterPlayingVideoState ();
 
-		SetPauseResumeIcon(App.Player.IsPlaying);
+		SetPauseResumeIcon (App.Player.IsPlaying);
 	}
 
-	public void SetPauseResumeIcon(bool isPlaying = true)
+	public void SetPauseResumeIcon(bool isPlaying)
 	{
 		if (isPlaying)
-			buttonPauseResumeIcon.sprite = buttonIconPlay;
-		else
 			buttonPauseResumeIcon.sprite = buttonIconPause;
+		else
+			buttonPauseResumeIcon.sprite = buttonIconPlay;
 	}
 
 	// Set seek doesn't work in this template
